@@ -13,7 +13,7 @@
 #include "utilities.h"
 
 void timer_handler();
-void printFlags(char * flags);
+void printFlags(char * flags, char * type);
 int open_port();
 int llopen();
 int llclose();

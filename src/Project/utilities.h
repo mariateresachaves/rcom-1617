@@ -16,11 +16,11 @@
 #define STOP_BYTE '\0'
 
 
-#define flag 0x7E
-#define a 0x03
-#define c_transmitter 0x03
-#define c_receiver 0x06
-#define bcc1 0x00
+#define FLAG 0x7E
+#define A 0x03
+#define C_TRANSMITTER 0x03
+#define C_RECEIVER 0x01
+#define BCC1 0x00
 
 struct ApplicationLayer{
 	int fd; 			//fd - descritor da porta ativa

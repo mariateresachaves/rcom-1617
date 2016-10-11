@@ -3,8 +3,8 @@
 volatile int STOP = FALSE;
 char buf[MAX_SIZE];
 
-char set[5] = {flag,a,c_transmitter,bcc1,flag};
-char ua[5] = {flag,a,c_receiver,bcc1,flag}; 
+char SET[5] = {FLAG,A,C_TRANSMITTER,BCC1,FLAG};
+char UA[5] = {FLAG,A,C_RECEIVER,BCC1,FLAG}; 
 
 void timer_handler() {
 	// TODO
@@ -88,14 +88,46 @@ char * llread() {
 	while (STOP==FALSE) {       /* loop for input */
 		res = read(al.fd, buf, newtio.c_cc[VMIN]); /* returns after 5 chars have been input */
 		
-		if (buf[0] == FLAG) {
+		while (1) {
+			if (res == 0) // estado 1
+				continue;
+
+			if (buf[0] == FLAG) { //estado 2
+				if (buf[1] != A) //estado 3
+					continue;
+
+				if (buf[2] == C_RECEIVER) { //estado 4
+					if (buf[3] == (A ^ C_RECEIVER)) { //estado 5
+						if (buf[4] == FLAG) {
+							if (strcmp(buf,SET) == 0) {
+								sendFlags(UA, "UA");
+								printFlags(buf, "UA");
+								break;			
+							}
+						}
+					}
+				} else if (buf[2] == C_TRANSMITTER) {
+					if (buf[3] == (A ^ C_TRANSMITTER)) { //estado 5
+						if (buf[4] == FLAG) {
+							if (strcmp(buf,UA) == 0) {
+								printf("Received UA\n");
+								//sendFlags(SET, "SET");
+								break;	
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/*if (buf[0] == FLAG) {
 			
 			if (buf[2] == C_TRANSMITTER)
 				printFlags(buf, "SET");
 			else
 				printFlags(buf, "UA");
 
-		} else {
+		} else {*/
 		
 			buf[res]=0;  /* so we can printf... */
 
@@ -105,7 +137,7 @@ char * llread() {
 				STOP = TRUE;
 			strcat(aux,buf);
 
-		}
+		//}
 	}
 
 	sleep(1);
@@ -145,9 +177,9 @@ int llwrite(char * buf) {
 		}
 		
 		if (al.status == TRANSMITTER)
-			sendFlags(set,"SET");
+			sendFlags(SET,"SET");
 		else
-			sendFlags(ua,"UA");
+			sendFlags(UA,"UA");
 
 		res = write(al.fd, aux, send_bytes);
 
