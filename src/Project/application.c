@@ -20,19 +20,17 @@ int main(int argc, char** argv) {
 		exit(1);
 	}
 
-    strcpy(ll.port, argv[1]);
+    memcpy(ll.port, argv[1], strlen(argv[1]));
 
 	ll.baudrate = BAUDRATE;
 	ll.sequenceNumber = 0;
 	ll.timeout = 3;
 	ll.numTransmissions = 3;
-	strcpy(ll.frame, "");
+	memcpy(ll.frame, "", strlen(""));
 
     al.fd = 0;
 
 	printf("--- Welcome to RCOM best project ever ---\n\n");
-
-    (void) signal(SIGALRM, timer_handler);
 
 	al.fd = llopen();
 
@@ -41,14 +39,14 @@ int main(int argc, char** argv) {
 		printf("String to send: ");
     	gets(buf);
 		llwrite(buf);
-		llread();
+		printf("BUF: %s\n",llread());
 
 		printf("\nTransmitter ended successfully\n");
 
 	} else { // RECEIVER
-        char * aux = llread();
-		memcpy(buf, aux, strlen(aux));
-		llwrite(buf);
+
+		memcpy(buf, llread(), MAX_SIZE);
+		//llwrite(buf);
 
 		printf("\nTransmitter ended successfully\n");
 
