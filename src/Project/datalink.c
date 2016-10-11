@@ -89,6 +89,7 @@ char * llread() {
 		res = read(al.fd, buf, newtio.c_cc[VMIN]); /* returns after 5 chars have been input */
 		
 		while (1) {
+
 			if (res == 0) // estado 1
 				continue;
 
@@ -99,20 +100,20 @@ char * llread() {
 				if (buf[2] == C_RECEIVER) { //estado 4
 					if (buf[3] == (A ^ C_RECEIVER)) { //estado 5
 						if (buf[4] == FLAG) {
-							if (strcmp(buf,SET) == 0) {
-								sendFlags(UA, "UA");
-								printFlags(buf, "UA");
-								break;			
+							if (strcmp(buf,UA) == 0) {
+								printf("Received UA\n");
+								//sendFlags(SET, "SET");
+								break;	
 							}
 						}
 					}
 				} else if (buf[2] == C_TRANSMITTER) {
 					if (buf[3] == (A ^ C_TRANSMITTER)) { //estado 5
 						if (buf[4] == FLAG) {
-							if (strcmp(buf,UA) == 0) {
-								printf("Received UA\n");
-								//sendFlags(SET, "SET");
-								break;	
+							if (strcmp(buf,SET) == 0) {
+								sendFlags(UA, "UA");
+								printFlags(buf, "SET");
+								break;			
 							}
 						}
 					}

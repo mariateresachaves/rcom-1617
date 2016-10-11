@@ -20,7 +20,8 @@
 #define A 0x03
 #define C_TRANSMITTER 0x03
 #define C_RECEIVER 0x01
-#define BCC1 0x00
+#define BCC1 0x00 // A ^ C_TRANSMITTER
+#define BCC2 0x02 // A ^ C_RECEIVER
 
 struct ApplicationLayer{
 	int fd; 			//fd - descritor da porta ativa
