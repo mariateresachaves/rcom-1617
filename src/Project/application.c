@@ -32,6 +32,8 @@ int main(int argc, char** argv) {
 
 	printf("--- Welcome to RCOM best project ever ---\n\n");
 
+    (void) signal(SIGALRM, timer_handler);
+
 	al.fd = llopen();
 
 	if (al.status == TRANSMITTER) {
@@ -44,8 +46,8 @@ int main(int argc, char** argv) {
 		printf("\nTransmitter ended successfully\n");
 
 	} else { // RECEIVER
-
-		strcpy(buf, llread());
+        char * aux = llread();
+		memcpy(buf, aux, strlen(aux));
 		llwrite(buf);
 
 		printf("\nTransmitter ended successfully\n");

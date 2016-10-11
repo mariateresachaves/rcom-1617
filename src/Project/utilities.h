@@ -11,6 +11,18 @@
 #define _POSIX_SOURCE 1
 #define MAX_SIZE 255
 #define STOP_BYTE '\0'
+#define FLAG 0x7E
+#define A 0x03
+#define C_TRANSMITTER 0x03
+#define C_RECEIVER 0x06
+#define BCC1 0x00
+
+/*const char flag = 0x7E;
+const char a = 0x03;
+const char c = 0x03;
+const char bcc1 = 0x00;*/
+
+
 
 struct ApplicationLayer{
 	int fd; 			//fd - descritor da porta ativa
@@ -28,5 +40,7 @@ struct LinkLayer {
 } ll;
 
 struct termios oldtio, newtio;
+
+
 
 #endif

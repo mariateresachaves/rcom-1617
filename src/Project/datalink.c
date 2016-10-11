@@ -2,17 +2,33 @@
 
 volatile int STOP = FALSE;
 char buf[MAX_SIZE];
+//int tries=0;
+//int flag_timer=0;
 
-void timer_handler() {
-	// TODO
+char set[5] = {FLAG, A, C_TRANSMITTER, BCC1, FLAG};
+char ua[5] = {FLAG, A, C_RECEIVER, BCC1, FLAG};
+
+/*void timer_handler() {
+	printf("alarme # %d\n", tries);
+	flag_timer = 1;
+	tries++;
+}*/
+
+void printFlags(char * flags) {
+	int n = 0;
+	while(n<5) {
+		printf("%x ", flags[n]);
+		n++;
+	}
+	printf("\n");
 }
 
-int open_port() {
+int open_port(char * port) {
 	
 	(void) signal(SIGALRM, timer_handler);
 	
-	al.fd = open(ll.port, O_RDWR | O_NOCTTY );
-    if (al.fd <0) {perror(ll.port); exit(-1); }
+	al.fd = open(port, O_RDWR | O_NOCTTY );
+    if (al.fd <0) {perror(port); exit(-1); }
 
     if ( tcgetattr(al.fd,&oldtio) == -1) { /* save current port settings */
 		perror("tcgetattr");
@@ -47,7 +63,9 @@ int llopen() {
 	printf("Opening port... \n");
 
 	al.fd = open_port(ll.port);
-    
+   
+    printFlags(ua);
+   
     return al.fd;
 
 }
@@ -101,6 +119,15 @@ int llwrite(char * buf) {
 		int send_bytes = 0;
 
 		memset(aux, 0, newtio.c_cc[VMIN]);
+		
+		/*while(tries <= ll.numTransmissions){
+		   if(flag_timer){
+			  alarm(newtio.c_cc[VTIME]);                 // activa alarme de 3s
+			  flag_timer = 0;
+		   } //else
+ 				//res = read(fd, buf, newtio.c_cc[VMIN]);   	/* returns after 5 chars have been input */
+
+		//}
 
 		if(newtio.c_cc[VMIN] > strlen(buf)-i) {
 			memcpy(aux, buf + i, strlen(buf)-i);
