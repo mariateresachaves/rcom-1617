@@ -13,10 +13,12 @@
 #include "utilities.h"
 
 void timer_handler();
+void printFlags(char * flags);
 int open_port();
 int llopen();
 int llclose();
 char * llread();
 int llwrite(char * buf);
+void sendFlags(char * flagToSend, char * type);
 
 #endif

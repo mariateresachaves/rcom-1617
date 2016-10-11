@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
 
     al.fd = 0;
 
-	printf("--- Welcome to RCOM best project ever ---\n\n");
+	printf("--- Welcome to the best RCOM project ever ---\n\n");
 
 	al.fd = llopen();
 
@@ -39,14 +39,14 @@ int main(int argc, char** argv) {
 		printf("String to send: ");
     	gets(buf);
 		llwrite(buf);
-		printf("BUF: %s\n",llread());
+		llread();
 
 		printf("\nTransmitter ended successfully\n");
 
 	} else { // RECEIVER
 
 		memcpy(buf, llread(), MAX_SIZE);
-		//llwrite(buf);
+		llwrite(buf);
 
 		printf("\nTransmitter ended successfully\n");
 

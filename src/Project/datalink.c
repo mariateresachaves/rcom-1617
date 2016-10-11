@@ -3,8 +3,21 @@
 volatile int STOP = FALSE;
 char buf[MAX_SIZE];
 
+char set[5] = {flag,a,c_transmitter,bcc1,flag};
+char ua[5] = {flag,a,c_receiver,bcc1,flag}; 
+
 void timer_handler() {
 	// TODO
+}
+
+void printFlags(char * flags, char * type) {
+	int n = 0;
+	printf("%s: ", type);
+	while(n<5) {
+		printf("%x ", flags[n]);
+		n++;
+	}
+	printf("\n");
 }
 
 int open_port(char * port) {
@@ -75,13 +88,24 @@ char * llread() {
 	while (STOP==FALSE) {       /* loop for input */
 		res = read(al.fd, buf, newtio.c_cc[VMIN]); /* returns after 5 chars have been input */
 		
-		buf[res]=0;  /* so we can printf... */
+		if (buf[0] == FLAG) {
+			
+			if (buf[2] == C_TRANSMITTER)
+				printFlags(buf, "SET");
+			else
+				printFlags(buf, "UA");
 
-		printf("Received :%s:%d\n", buf, res);
+		} else {
+		
+			buf[res]=0;  /* so we can printf... */
 
-		if (buf[res-1] == STOP_BYTE)
-			STOP = TRUE;
-		strcat(aux,buf);
+			printf("Received: %s:%d\n", buf, res);
+
+			if (buf[res-1] == STOP_BYTE)
+				STOP = TRUE;
+			strcat(aux,buf);
+
+		}
 	}
 
 	sleep(1);
@@ -119,18 +143,31 @@ int llwrite(char * buf) {
 
 			aux[send_bytes] = 0;
 		}
+		
+		if (al.status == TRANSMITTER)
+			sendFlags(set,"SET");
+		else
+			sendFlags(ua,"UA");
 
 		res = write(al.fd, aux, send_bytes);
 
-		printf("Sent: %s send_bytes: %d\n", aux, send_bytes);
+		printf("Sent: %s:%d\n", aux, send_bytes);
 
 		sleep(1);
 
 		i+=newtio.c_cc[VMIN];
 
 	}
-
 	return res;
+
+}
+
+void sendFlags(char * flagToSend, char * type) {
+
+	write(al.fd, flagToSend, 5);
+	printf("---Sending Flags---\n");
+	printFlags(flagToSend, type);
+	printf("-------------------\n");
 
 }
 

@@ -6,11 +6,21 @@
 
 #define BAUDRATE B9600
 #define MODEMDEVICE "/dev/ttyS1"
+
 #define RECEIVER 0
 #define TRANSMITTER 1
+
 #define _POSIX_SOURCE 1
+
 #define MAX_SIZE 255
 #define STOP_BYTE '\0'
+
+
+#define flag 0x7E
+#define a 0x03
+#define c_transmitter 0x03
+#define c_receiver 0x06
+#define bcc1 0x00
 
 struct ApplicationLayer{
 	int fd; 			//fd - descritor da porta ativa
