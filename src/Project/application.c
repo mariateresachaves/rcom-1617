@@ -41,14 +41,14 @@ int main(int argc, char** argv) {
 		llwrite(buf);
 		llread();
 
-		printf("\nTransmitter ended successfully\n");
+		printf("\tTransmitter ended successfully\n");
 
 	} else { // RECEIVER
 
 		memcpy(buf, llread(), MAX_SIZE);
 		llwrite(buf);
-
-		printf("\nTransmitter ended successfully\n");
+		
+		printf("\nReceiver ended successfully\n");
 
 	}
 

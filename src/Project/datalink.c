@@ -4,7 +4,7 @@ volatile int STOP = FALSE;
 char buf[MAX_SIZE];
 
 char SET[5] = {FLAG,A,C_TRANSMITTER,BCC1,FLAG};
-char UA[5] = {FLAG,A,C_RECEIVER,BCC1,FLAG}; 
+char UA[5] = {FLAG,A,C_RECEIVER,BCC2,FLAG}; 
 
 void timer_handler() {
 	// TODO
@@ -43,6 +43,9 @@ int open_port(char * port) {
     newtio.c_cc[VTIME]    = 3;   /* inter-character timer unused */
     newtio.c_cc[VMIN]     = 5;   /* blocking read until 5 chars received */
 
+
+    ll.timeout=3;
+    ll.numTransmissions=3;
 
     tcflush(al.fd, TCIFLUSH);
 
@@ -87,7 +90,7 @@ char * llread() {
 
 	while (STOP==FALSE) {       /* loop for input */
 		res = read(al.fd, buf, newtio.c_cc[VMIN]); /* returns after 5 chars have been input */
-		
+				
 		while (1) {
 
 			if (res == 0) // estado 1
@@ -97,11 +100,12 @@ char * llread() {
 				if (buf[1] != A) //estado 3
 					continue;
 
-				if (buf[2] == C_RECEIVER) { //estado 4
+				if (buf[2] == C_RECEIVER) { //estado 4				
 					if (buf[3] == (A ^ C_RECEIVER)) { //estado 5
 						if (buf[4] == FLAG) {
+						
 							if (strcmp(buf,UA) == 0) {
-								printf("Received UA\n");
+							    printFlags(buf, "UA");
 								//sendFlags(SET, "SET");
 								break;	
 							}
@@ -111,9 +115,30 @@ char * llread() {
 					if (buf[3] == (A ^ C_TRANSMITTER)) { //estado 5
 						if (buf[4] == FLAG) {
 							if (strcmp(buf,SET) == 0) {
+							    printFlags(buf, "SET");
 								sendFlags(UA, "UA");
-								printFlags(buf, "SET");
-								break;			
+								
+								// Waits for a set
+								int times=0;
+								while(ll.numTransmissions != times) {
+								
+								    // turn alarm on
+								    alarm(3);
+								
+                                    res = read(al.fd, buf, newtio.c_cc[VMIN]);
+                                    
+                                    if (buf[res-1] == STOP_BYTE)
+			                            STOP = TRUE;
+		                            strcat(aux,buf);
+
+                                    printFlags(buf, "SET");
+                                    
+                                    // turn alarm off
+                                    alarm(0);								
+							        times++;
+								}
+								
+								break;	
 							}
 						}
 					}
@@ -130,20 +155,28 @@ char * llread() {
 
 		} else {*/
 		
-			buf[res]=0;  /* so we can printf... */
+			/*buf[res]=0;  /* so we can printf... */
 
-			printf("Received: %s:%d\n", buf, res);
+            /*res = read(al.fd, buf, newtio.c_cc[VMIN]); /* returns after 5 chars have been input */
+
+
+            /*if(buf[0] != FLAG)
+			    printf("Received: %s:%d\n", buf, res);
+			else
+			    printFlags(buf, "UA");
 
 			if (buf[res-1] == STOP_BYTE)
 				STOP = TRUE;
-			strcat(aux,buf);
+			strcat(aux,buf);*/
 
 		//}
 	}
 
 	sleep(1);
 	
-	printf("Read: %s\n", aux);
+	//printf("Read: %s\n", aux);
+	
+	STOP = FALSE;
 
 	return aux;
 
@@ -179,7 +212,7 @@ int llwrite(char * buf) {
 		
 		if (al.status == TRANSMITTER)
 			sendFlags(SET,"SET");
-		else
+        else
 			sendFlags(UA,"UA");
 
 		res = write(al.fd, aux, send_bytes);
@@ -191,6 +224,7 @@ int llwrite(char * buf) {
 		i+=newtio.c_cc[VMIN];
 
 	}
+	
 	return res;
 
 }
