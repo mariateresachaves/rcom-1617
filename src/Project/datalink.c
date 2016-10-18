@@ -3,6 +3,7 @@
 volatile int STOP = FALSE;
 char buf[MAX_SIZE];
 int times = 0;
+int flagTimer = 0;
 
 int SUCCESS_UA = 0;
 
@@ -12,6 +13,7 @@ char UA[5] = {FLAG,A,C_RECEIVER,BCC2,FLAG};
 void timer_handler() {
 	printf("<--- Alarm number %d --->\n", times);
 	times++;
+	flagTimer = 1;
 }
 
 void printFlags(char * flags, char * type) {
@@ -93,72 +95,72 @@ char * llread() {
 	memset(aux, 0, MAX_SIZE);
 
 	while (STOP==FALSE) {       /* loop for input */
-		res = read(al.fd, buf, newtio.c_cc[VMIN]); /* returns after 5 chars have been input */
-				
-		while (1) {
+		
+		if (SUCCESS_UA == 1){
+			printf("Vou receber uma mensagem: %d ................\n"); 
+	        receive_message(aux);
+			SUCCESS_UA = 0;
+		} else {
+			res = read(al.fd, buf, newtio.c_cc[VMIN]); /* returns after 5 chars have been input */
+			while (1) {
 
-			if (res == 0) // estado 1
-				continue;
-
-			if (buf[0] == FLAG) { //estado 2
-				if (buf[1] != A) //estado 3
+				if (res == 0) // estado 1
 					continue;
 
-				if (buf[2] == C_RECEIVER) { //estado 4				
-					if (buf[3] == (A ^ C_RECEIVER)) { //estado 5
-						if (buf[4] == FLAG) {
+				if (buf[0] == FLAG) { //estado 2
+					if (buf[1] != A) //estado 3
+						continue;
+
+					if (buf[2] == C_RECEIVER) { //estado 4				
+						if (buf[3] == (A ^ C_RECEIVER)) { //estado 5
+							if (buf[4] == FLAG) {
 						
-							if (strcmp(buf, UA) == 0) {
-							    printFlags(buf, "UA");
-								sendFlags(SET, "SET");
-								break;	
+								if (strcmp(buf, UA) == 0) {
+									printFlags(buf, "UA");
+									sendFlags(SET, "SET");
+									break;	
+								}
 							}
 						}
-					}
-				} else if (buf[2] == C_TRANSMITTER) {
-					if (buf[3] == (A ^ C_TRANSMITTER)) { //estado 5
-						if (buf[4] == FLAG) {
-							if (strcmp(buf,SET) == 0) {
+					} else if (buf[2] == C_TRANSMITTER) {
+						if (buf[3] == (A ^ C_TRANSMITTER)) { //estado 5
+							if (buf[4] == FLAG) {
+								if (strcmp(buf,SET) == 0) {
+											
+											printf("Received: ");
+									        printFlags(buf, "SET");
+									        
+									        // Waits for a set
+									        while(ll.numTransmissions != times) {
+									        
+									            sendFlags(UA, "UA");
 							
-							    if(SUCCESS_UA == 0) {
-							    
-							        if (strcmp(buf,SET) == 0) {
-							            printFlags(buf, "SET");
-							            
-							            // Waits for a set
-							            while(ll.numTransmissions != times) {
-							            
-							                sendFlags(UA, "UA");
-							
-							                // turn alarm on
-							                alarm(3);
-							
-                                            res = read(al.fd, buf, newtio.c_cc[VMIN]);
-                                            
-                                            if(res > 0) {
-                                            
-                                                if (strcmp(buf, SET) == 0) {
-                                                
-                                                    SUCCESS_UA = 1;
-                                                    printFlags(buf, "SET");
-                                                    break;
-                                                    
-                                                }
-                                                
-                                            }
-                                            
-                                            // turn alarm off
-                                            alarm(0);
-							            }
-							            
-							            break;
-							        }
-							    
-							    } else {
-							    
-							        receive_message(aux);
-							    
-							    }
+									            // turn alarm on
+									            alarm(3);
+											
+		                                        res = read(al.fd, buf, newtio.c_cc[VMIN]);
+
+		                                        if(res > 0) {
+		                                        	
+		                                            if (strcmp(buf, SET) == 0) {
+		                                            
+		                                                SUCCESS_UA = 1;
+														printf("Received: ");
+		                                                printFlags(buf, "SET");
+														alarm(0);
+		                                                break;
+		                                                
+		                                            }
+		                                            
+		                                        }
+		                                        
+		                                        // turn alarm off
+		                                        //alarm(0);
+									        }
+									        
+									        break;
+									    
+								}
 							}
 						}
 					}
@@ -236,7 +238,7 @@ int send_message(char * message, int send_bytes) {
     // Waits for a set
     while(ll.numTransmissions != times) {
     
-        sendFlags(UA, "UA");
+        sendFlags(SET, "SET");
 
         // turn alarm on
         alarm(3);
@@ -246,7 +248,7 @@ int send_message(char * message, int send_bytes) {
         if(res > 0) {
         
             if (strcmp(buf, UA) == 0) {
-                printFlags(buf, "SET");
+                printFlags(buf, "UA");
                 break;
             }
             
@@ -258,7 +260,7 @@ int send_message(char * message, int send_bytes) {
     
     sendFlags(SET, "SET");
     
-    sleep(1);
+    //sleep(1);
 
     res = write(al.fd, message, send_bytes);
     
