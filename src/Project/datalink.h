@@ -20,5 +20,7 @@ int llclose();
 char * llread();
 int llwrite(char * buf);
 void sendFlags(char * flagToSend, char * type);
+int send_message(char * message, int send_bytes);
+void receive_message(char * aux);
 
 #endif
