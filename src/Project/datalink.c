@@ -22,7 +22,6 @@ void printFlags(char * flags, char * type) {
 		printf("%x ", flags[n]);
 		n++;
 	}
-	printf("\n");
 }
 
 int open_port(char * port) {
@@ -99,16 +98,16 @@ char * llread() {
 	while (1){
 	
 		res = read(al.fd, buf, newtio.c_cc[VMIN]);
-
+		
 		switch (currentState){
 			case 0: // FLAG
-				if (buf[currentState != FLAG]){
+				if (buf[currentState] != FLAG){
 					printf("[ERRO] Não recebi flag FLAG correta!\n");
 					break;
 				} else
 					currentState++;
 			case 1: // A
-				if (buf[currentState != A]){
+				if (buf[currentState] != A){
 					printf("[ERRO] Não recebi flag A correta!\n");
 					break;
 				} else
@@ -244,9 +243,9 @@ int llwrite(char * buf) {
 void sendFlags(char * flagToSend, char * type) {
 
 	write(al.fd, flagToSend, 5);
-	printf("---Sending Flags---\n");
+	printf("<--- A enviar Flag ");
 	printFlags(flagToSend, type);
-	printf("-------------------\n");
+	printf(" --->\n");
 
 }
 
@@ -259,9 +258,9 @@ int send_message(char * message, int send_bytes) {
     
     sendFlags(SET, "SET");
         
-    res = read(al.fd, buf, newtio.c_cc[VMIN]);
+    //res = read(al.fd, buf, newtio.c_cc[VMIN]);
     
-    printFlags(buf, "UA");
+    //printFlags(buf, "UA");
     
 	printf("\nIa enviar uma mensagem, mas não dá jeito agora.....\n\n");
     //res = write(al.fd, message, send_bytes);
