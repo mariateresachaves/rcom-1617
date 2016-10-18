@@ -18,8 +18,18 @@
 
 #define FLAG 0x7E
 #define A 0x03
-#define C_TRANSMITTER 0x03
-#define C_RECEIVER 0x01
+
+#define C_SET 0x03
+#define C_DISC 0x0B
+#define C_UA 0x07
+#define C_RR 0x05
+#define C_RR_ACK 0x85
+#define C_REJ 0x01
+#define C_REJ_ACK 0x81
+
+#define C_INFO_0 0x00
+#define C_INFO_1 0x40
+
 #define BCC1 0x00 // A ^ C_TRANSMITTER
 #define BCC2 0x02 // A ^ C_RECEIVER
 
