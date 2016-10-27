@@ -3,6 +3,8 @@
 int main(int argc, char** argv) {
 
 	char buf[MAX_SIZE];
+	char fileName[MAX_SIZE];
+	int fileFD, fileSize = 0;
 
  	if ( (argc < 3) || 
   	     ((strcmp("/dev/ttyS0", argv[1])!=0) && 
@@ -38,6 +40,14 @@ int main(int argc, char** argv) {
 
 		printf("String to send: ");
     	gets(buf);
+		/*printf("File Name: ");
+		scanf("%s", fileName);
+		fileFD = open(fileName, O_RDONLY | O_NOCTTY );
+		
+		while(read(fileFD, &buf[fileSize], newtio.c_cc[VMIN])){
+			fileSize++;
+			buf = realloc(buf, fileSize+newtio.c_cc[VMIN]);		
+		} */
 		llwrite(buf);
 		llread();
 

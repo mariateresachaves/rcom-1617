@@ -6,8 +6,17 @@ int times = 0, flag_timer = 0;
 
 int SUCCESS_UA = 0;
 
-char SET[5] = {FLAG,A,C_SET,BCC1,FLAG};
-char UA[5] = {FLAG,A,C_UA,BCC2,FLAG}; 
+char SET[5] = {FLAG,A,C_SET,0,FLAG};
+char DISC[5] = {FLAG,A,C_DISC,0,FLAG};
+char UA[5] = {FLAG,A,C_UA,0,FLAG}; 
+char RR[5] = {FLAG,A,C_RR,0,FLAG}; 
+char REJ[5] = {FLAG,A,C_REJ,0,FLAG}; 
+char RR_ACK[5] = {FLAG,A,C_RR_ACK,0,FLAG}; 
+char REJ_ACK[5] = {FLAG,A,C_REJ_ACK,0,FLAG}; 
+char INFO_0[5] = {FLAG,A,C_INFO_0,0,FLAG}; 
+char INFO_1[5] = {FLAG,A,C_INFO_1,0,FLAG}; 
+
+
 
 void timer_handler() {
 	printf("<--- Alarm number %d --->\n", times);
@@ -87,115 +96,13 @@ int llclose() {
 
 char * llread() {
 
-	int res;
 	char aux[MAX_SIZE];
-	int currentState = 0;
-
 
 	memset(aux, 0, MAX_SIZE);
-
-		
-	while (1){
 	
-		res = read(al.fd, buf, newtio.c_cc[VMIN]);
-		
-		switch (currentState){
-			case 0: // FLAG
-				if (buf[currentState] != FLAG){
-					printf("[ERRO] Não recebi flag FLAG correta!\n");
-					break;
-				} else
-					currentState++;
-			case 1: // A
-				if (buf[currentState] != A){
-					printf("[ERRO] Não recebi flag A correta!\n");
-					break;
-				} else
-					currentState++;
-			case 2: // CONTROLO
-				switch (buf[currentState]){
-					case C_INFO_0:
-						//destuff de pacote de dados
-						//processar pacote de dados
-						//enviar receiver ready (RR)
-						break;
-					case C_INFO_1:
-						//destuff de pacote de dados
-						//processar pacote de dados
-						//enviar receiver ready (RR_ACK)
-						break;
-					case C_SET:
-						printf("<--- Recebi um SET --->\n");
-						//envia UA
-						sendFlags(UA,"UA");
-						break;
-					case C_DISC:
-						//verifica se é recetor ou emissor
-						//se for recetor, envia novo DISC
-						//se for emissor, envia UA
-						break;
-					case C_UA:
-						printf("<--- Recebi um UA --->\n");
-						//verifica se é recetor ou emissor
-						if (al.status == TRANSMITTER){
-							//se for emissor, envia INFO_0
-							printf("------A enviar INFO_0----------\n");
-						} else  if (al.status == RECEIVER){
-							//se for recetor, termina leitura
-							printf("------A terminar leitura----------\n");
-						}
-						
-						break;
-					case C_RR:
-						//enviar trama com informação (INFO_1)
-						break;
-					case C_RR_ACK:
-						//verifica se existem mais tramas
-						//caso exista, repete ciclo
-						//caso não exista, envia disconnect (DISC)
-						break;
-					case C_REJ:
-						break;
-					case C_REJ_ACK:
-						break;
-					default:
-						printf("[ERRO] Flag do campo de controlo desconhecida - %x\n",	buf[currentState]);
-						return NULL;			
-				}
-				currentState++;
-			case 3: // BCC
-				switch (buf[currentState]){
-					case A ^ C_UA:
-						break;
-					case A ^ C_SET:
-						break;
-					default:
-						if (buf[currentState-1] == C_INFO_0)
-							printf("Encher chouriços");
-							//enviar C_REJ
-						else if (buf[currentState-1] == C_INFO_1)
-							printf("Encher chouriços");
-							//enviar C_REJ_ACK
-						printf("[ERRO] Flag BCC errada!");
-						return NULL;
-				}
-				currentState++;
-			case 4: 
-				if (buf[currentState != FLAG]){
-					printf("[ERRO] Não recebi flag FLAG correta!\n");
-					break;
-				} else
-					//TODO
-					//enviar dados se trama de informação
-					break;
-			
-		}
-		
-
-	}
+	stateMachine();
 
 	return aux;
-
 }
 
 int llwrite(char * buf) {
@@ -283,4 +190,132 @@ void receive_message(char * aux) {
         STOP = TRUE;
 
     strcat(aux, buf);
+}
+
+int generate_bcc(char * buf, int size){
+	int i=4;
+	
+	//bcc1
+	buf[3] = buf[1] ^ buf[2];
+
+	//bcc2
+	if (size > 4){
+		buf[size-1] = 0;
+		while (i<size-1){
+			buf[size-1] ^= buf[i];
+			i++;
+		}
+		return 0;
+	}
+
+	return buf[3];
+}
+
+int stateMachine(){
+	
+	int res;
+	int currentState = 0;
+	
+	while (1){
+
+	res = read(al.fd, buf, newtio.c_cc[VMIN]);
+	
+	switch (currentState){
+		case 0: // FLAG
+			if (buf[currentState] != FLAG){
+				
+				printf("[ERRO] Não recebi flag FLAG correta!\n");
+				break;
+			} else
+				currentState++;
+		case 1: // A
+			if (buf[currentState] != A){
+				printf("[ERRO] Não recebi flag A correta!\n");
+				break;
+			} else
+				currentState++;
+		case 2: // CONTROLO
+			switch (buf[currentState]){
+				case C_INFO_0:
+					//destuff de pacote de dados
+					//processar pacote de dados
+					//enviar receiver ready (RR)
+					break;
+				case C_INFO_1:
+					//destuff de pacote de dados
+					//processar pacote de dados
+					//enviar receiver ready (RR_ACK)
+					break;
+				case C_SET:
+					printf("<--- Recebi um SET --->\n");
+					//envia UA
+					sendFlags(UA,"UA");
+					break;
+				case C_DISC:
+					//verifica se é recetor ou emissor
+					//se for recetor, envia novo DISC
+					//se for emissor, envia UA
+					break;
+				case C_UA:
+					printf("<--- Recebi um UA --->\n");
+					//verifica se é recetor ou emissor
+					if (al.status == TRANSMITTER){
+						//se for emissor, envia INFO_0
+						//printf("------A enviar INFO_0----------\n");
+						sendFlags(INFO_0,"INFO_0");
+					} else  if (al.status == RECEIVER){
+						//se for recetor, termina leitura
+						printf("------A terminar leitura----------\n");
+					}
+					
+					break;
+				case C_RR:
+					//enviar trama com informação (INFO_1)
+					break;
+				case C_RR_ACK:
+					//verifica se existem mais tramas
+					//caso exista, repete ciclo
+					//caso não exista, envia disconnect (DISC)
+					break;
+				case C_REJ:
+					break;
+				case C_REJ_ACK:
+					break;
+				default:
+					printf("[ERRO] Flag do campo de controlo desconhecida - %x\n",	buf[currentState]);
+					return NULL;			
+			}
+			currentState++;
+		case 3: // BCC
+			generate_bcc(buf,res);
+			switch (buf[currentState]){
+				case A ^ C_UA:
+					break;
+				case A ^ C_SET:
+					break;
+				default:
+					if (buf[currentState-1] == C_INFO_0)
+						printf("Encher chouriços");
+						//enviar C_REJ
+					else if (buf[currentState-1] == C_INFO_1)
+						printf("Encher chouriços");
+						//enviar C_REJ_ACK
+					printf("[ERRO] Flag BCC errada!");
+					return NULL;
+			}
+			currentState++;
+		case 4: 
+			if (buf[currentState != FLAG]){
+				printf("[ERRO] Não recebi flag final FLAG correta!\n");
+				break;
+			} else
+				//TODO
+				//enviar dados se trama de informação
+				break;
+		
+		}
+	
+
+	}
+
 }
