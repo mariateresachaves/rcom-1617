@@ -99,8 +99,12 @@ char * llread() {
 	char aux[MAX_SIZE];
 
 	memset(aux, 0, MAX_SIZE);
+
+	while (STOP==FALSE) {       /* loop for input */
+  		receive_message(aux);
+  	}
 	
-	stateMachine();
+	//stateMachine();
 
 	return aux;
 }
@@ -113,6 +117,7 @@ int llwrite(char * buf) {
 	// String size
     int num = strlen(buf);
     
+	// Envia a mensagem de newtio.c_cc[VMIN] em newtio.c_cc[VMIN] bytes 
     while(i < num+1) {
 
 		int send_bytes = 0;
@@ -134,7 +139,7 @@ int llwrite(char * buf) {
 		}
 
 		res = send_message(aux, send_bytes);
-
+		
 		printf("Sent: %s:%d\n", aux, send_bytes);
 
 		sleep(1);
@@ -161,16 +166,16 @@ int send_message(char * message, int send_bytes) {
     int res=0;
 
 
-    printf("\nTrying to send SET.....\n\n");
+    /*printf("\nTrying to send SET.....\n\n");
     
-    sendFlags(SET, "SET");
+    sendFlags(SET, "SET");*/
         
     //res = read(al.fd, buf, newtio.c_cc[VMIN]);
     
     //printFlags(buf, "UA");
     
-	printf("\nIa enviar uma mensagem, mas não dá jeito agora.....\n\n");
-    //res = write(al.fd, message, send_bytes);
+	//printf("\nIa enviar uma mensagem, mas não dá jeito agora.....\n\n");
+    res = write(al.fd, message, send_bytes);
     
     return res;
 
@@ -180,14 +185,14 @@ void receive_message(char * aux) {
 
     int res;
     
-    buf[res] = 0;
-    
-    res = read(al.fd, buf, newtio.c_cc[VMIN]);
+   	res = read(al.fd, buf, newtio.c_cc[VMIN]);
+
+	buf[res] = 0;
 
     printf("Received: %s:%d\n", buf, res);
     
     if(buf[res-1] == STOP_BYTE)
-        STOP = TRUE;
+		STOP = TRUE;
 
     strcat(aux, buf);
 }
@@ -211,7 +216,7 @@ int generate_bcc(char * buf, int size){
 	return buf[3];
 }
 
-int stateMachine(){
+int stateMachine() {
 	
 	int res;
 	int currentState = 0;
@@ -220,9 +225,9 @@ int stateMachine(){
 
 	res = read(al.fd, buf, newtio.c_cc[VMIN]);
 	
-	switch (currentState){
+	switch (currentState) {
 		case 0: // FLAG
-			if (buf[currentState] != FLAG){
+			if (buf[currentState] != FLAG) {
 				
 				printf("[ERRO] Não recebi flag FLAG correta!\n");
 				break;
@@ -235,7 +240,7 @@ int stateMachine(){
 			} else
 				currentState++;
 		case 2: // CONTROLO
-			switch (buf[currentState]){
+			switch (buf[currentState]) {
 				case C_INFO_0:
 					//destuff de pacote de dados
 					//processar pacote de dados
@@ -259,11 +264,11 @@ int stateMachine(){
 				case C_UA:
 					printf("<--- Recebi um UA --->\n");
 					//verifica se é recetor ou emissor
-					if (al.status == TRANSMITTER){
+					if (al.status == TRANSMITTER) {
 						//se for emissor, envia INFO_0
 						//printf("------A enviar INFO_0----------\n");
 						sendFlags(INFO_0,"INFO_0");
-					} else  if (al.status == RECEIVER){
+					} else  if (al.status == RECEIVER) {
 						//se for recetor, termina leitura
 						printf("------A terminar leitura----------\n");
 					}
@@ -288,7 +293,7 @@ int stateMachine(){
 			currentState++;
 		case 3: // BCC
 			generate_bcc(buf,res);
-			switch (buf[currentState]){
+			switch (buf[currentState]) {
 				case A ^ C_UA:
 					break;
 				case A ^ C_SET:
@@ -305,7 +310,7 @@ int stateMachine(){
 			}
 			currentState++;
 		case 4: 
-			if (buf[currentState != FLAG]){
+			if (buf[currentState != FLAG]) {
 				printf("[ERRO] Não recebi flag final FLAG correta!\n");
 				break;
 			} else

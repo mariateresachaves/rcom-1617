@@ -2,7 +2,8 @@
 
 int main(int argc, char** argv) {
 
-	char buf[MAX_SIZE];
+	char * buf;
+	char buf_reader[MAX_SIZE];
 	char fileName[MAX_SIZE];
 	int fileFD, fileSize = 0;
 
@@ -37,26 +38,27 @@ int main(int argc, char** argv) {
 	al.fd = llopen();
 
 	if (al.status == TRANSMITTER) {
-
-		printf("String to send: ");
-    	gets(buf);
-		/*printf("File Name: ");
+		//printf("String to send: ");
+    	//gets(buf);
+		printf("File Name: ");
 		scanf("%s", fileName);
 		fileFD = open(fileName, O_RDONLY | O_NOCTTY );
+		buf = malloc(1);
 		
-		while(read(fileFD, &buf[fileSize], newtio.c_cc[VMIN])){
+		// le o ficheiro byte a byte
+		while(read(fileFD, &buf[fileSize], 1)){
 			fileSize++;
-			buf = realloc(buf, fileSize+newtio.c_cc[VMIN]);		
-		} */
+			buf = realloc(buf, fileSize+newtio.c_cc[VMIN]);
+		}
 		llwrite(buf);
 		llread();
 
 		printf("\tTransmitter ended successfully\n");
 
-	} else { // RECEIVER
+	} else if(al.status == RECEIVER) { // RECEIVER
 
-		memcpy(buf, llread(), MAX_SIZE);
-		llwrite(buf);
+		memcpy(buf_reader, llread(), MAX_SIZE);
+		llwrite(buf_reader);
 		
 		printf("\nReceiver ended successfully\n");
 
