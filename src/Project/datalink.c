@@ -8,15 +8,13 @@ int SUCCESS_UA = 0;
 
 char SET[5] = {FLAG,A,C_SET,0,FLAG};
 char DISC[5] = {FLAG,A,C_DISC,0,FLAG};
-char UA[5] = {FLAG,A,C_UA,0,FLAG}; 
-char RR[5] = {FLAG,A,C_RR,0,FLAG}; 
-char REJ[5] = {FLAG,A,C_REJ,0,FLAG}; 
-char RR_ACK[5] = {FLAG,A,C_RR_ACK,0,FLAG}; 
-char REJ_ACK[5] = {FLAG,A,C_REJ_ACK,0,FLAG}; 
-char INFO_0[5] = {FLAG,A,C_INFO_0,0,FLAG}; 
-char INFO_1[5] = {FLAG,A,C_INFO_1,0,FLAG}; 
-
-
+char UA[5] = {FLAG,A,C_UA,0,FLAG};
+char RR[5] = {FLAG,A,C_RR,0,FLAG};
+char REJ[5] = {FLAG,A,C_REJ,0,FLAG};
+char RR_ACK[5] = {FLAG,A,C_RR_ACK,0,FLAG};
+char REJ_ACK[5] = {FLAG,A,C_REJ_ACK,0,FLAG};
+char INFO_0[5] = {FLAG,A,C_INFO_0,0,FLAG};
+char INFO_1[5] = {FLAG,A,C_INFO_1,0,FLAG};
 
 void timer_handler() {
 	printf("<--- Alarm number %d --->\n", times);
@@ -34,9 +32,9 @@ void printFlags(char * flags, char * type) {
 }
 
 int open_port(char * port) {
-	
+
 	(void) signal(SIGALRM, timer_handler);
-	
+
 	al.fd = open(port, O_RDWR | O_NOCTTY );
     if (al.fd <0) {perror(port); exit(-1); }
 
@@ -66,17 +64,17 @@ int open_port(char * port) {
 		perror("tcsetattr");
 		exit(-1);
     }
-    
+
     return al.fd;
 
 }
 
 int llopen() {
-	
+
 	printf("Opening port... \n");
 
 	al.fd = open_port(ll.port);
-    
+
     return al.fd;
 
 }
@@ -103,7 +101,7 @@ char * llread() {
 	while (STOP==FALSE) {       /* loop for input */
   		receive_message(aux);
   	}
-	
+
 	//stateMachine();
 
 	return aux;
@@ -116,8 +114,8 @@ int llwrite(char * buf) {
 
 	// String size
     int num = strlen(buf);
-    
-	// Envia a mensagem de newtio.c_cc[VMIN] em newtio.c_cc[VMIN] bytes 
+
+	// Envia a mensagem de newtio.c_cc[VMIN] em newtio.c_cc[VMIN] bytes
     while(i < num+1) {
 
 		int send_bytes = 0;
@@ -127,7 +125,7 @@ int llwrite(char * buf) {
 		if(newtio.c_cc[VMIN] > strlen(buf)-i) {
 			memcpy(aux, buf + i, strlen(buf)-i);
 			send_bytes = strlen(buf)-i;
-			
+
 			aux[send_bytes] = 0;
 			send_bytes++;
 		}
@@ -139,7 +137,7 @@ int llwrite(char * buf) {
 		}
 
 		res = send_message(aux, send_bytes);
-		
+
 		printf("Sent: %s:%d\n", aux, send_bytes);
 
 		sleep(1);
@@ -147,7 +145,7 @@ int llwrite(char * buf) {
 		i+=newtio.c_cc[VMIN];
 
 	}
-	
+
 	return res;
 }
 
@@ -166,16 +164,16 @@ int send_message(char * message, int send_bytes) {
 
 
     /*printf("\nTrying to send SET.....\n\n");
-    
+
     sendFlags(SET, "SET");*/
-        
+
     //res = read(al.fd, buf, newtio.c_cc[VMIN]);
-    
+
     //printFlags(buf, "UA");
-    
+
 	//printf("\nIa enviar uma mensagem, mas não dá jeito agora.....\n\n");
     res = write(al.fd, message, send_bytes);
-    
+
     return res;
 
 }
@@ -183,13 +181,13 @@ int send_message(char * message, int send_bytes) {
 void receive_message(char * aux) {
 
     int res;
-    
+
    	res = read(al.fd, buf, newtio.c_cc[VMIN]);
 
 	buf[res] = 0;
 
     printf("Received: %s:%d\n", buf, res);
-    
+
     if(buf[res-1] == STOP_BYTE)
 		STOP = TRUE;
 
@@ -198,7 +196,7 @@ void receive_message(char * aux) {
 
 int generate_bcc(char * buf, int size){
 	int i=4;
-	
+
 	//bcc1
 	buf[3] = buf[1] ^ buf[2];
 
@@ -215,19 +213,42 @@ int generate_bcc(char * buf, int size){
 	return buf[3];
 }
 
+void stuffing(char * buf, int * buf_size) {
+
+	int i = 1;
+
+	while(i < (*buf_size)) {
+
+		if (buf[i] == FLAG) {
+			buf[i] = 0x7D;
+			buf[i+1] = 0x5E;
+			(*buf_size)++;
+		}
+
+		else if  (buf[i] == FLAG_ESC) {
+			buf[i] = 0x7D;
+			buf[i+1] = 0x5D;
+			(*buf_size)++;
+		}
+
+		i++;
+	}
+
+}
+
 int stateMachine() {
-	
+
 	int res;
 	int currentState = 0;
-	
+
 	while (1){
 
 	res = read(al.fd, buf, newtio.c_cc[VMIN]);
-	
+
 	switch (currentState) {
 		case 0: // FLAG
 			if (buf[currentState] != FLAG) {
-				
+
 				printf("[ERRO] Não recebi flag FLAG correta!\n");
 				break;
 			} else
@@ -271,7 +292,7 @@ int stateMachine() {
 						//se for recetor, termina leitura
 						printf("------A terminar leitura----------\n");
 					}
-					
+
 					break;
 				case C_RR:
 					//enviar trama com informação (INFO_1)
@@ -287,7 +308,7 @@ int stateMachine() {
 					break;
 				default:
 					printf("[ERRO] Flag do campo de controlo desconhecida - %x\n",	buf[currentState]);
-					return NULL;			
+					return NULL;
 			}
 			currentState++;
 		case 3: // BCC
@@ -308,7 +329,7 @@ int stateMachine() {
 					return NULL;
 			}
 			currentState++;
-		case 4: 
+		case 4:
 			if (buf[currentState != FLAG]) {
 				printf("[ERRO] Não recebi flag final FLAG correta!\n");
 				break;
@@ -316,10 +337,6 @@ int stateMachine() {
 				//TODO
 				//enviar dados se trama de informação
 				break;
-		
 		}
-	
-
 	}
-
 }

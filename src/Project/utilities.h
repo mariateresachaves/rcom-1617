@@ -37,6 +37,8 @@
 #define BCC1 0x00 // A ^ C_TRANSMITTER
 #define BCC2 0x02 // A ^ C_RECEIVER
 
+#define FLAG_ESC 0x7D
+
 struct ApplicationLayer{
 	int fd; 			//fd - descritor da porta ativa
 	int status;			//transmissor ou recetor
@@ -48,7 +50,7 @@ struct LinkLayer {
 	unsigned int sequenceNumber;	//Número de sequência da trama
 	unsigned int timeout;			//Valor do timer
 	unsigned int numTransmissions; 	//Numero de tentativas em caso de falha
-	
+
 	char frame[MAX_SIZE]; 			// Trama
 } ll;
 
