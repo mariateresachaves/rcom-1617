@@ -43,7 +43,7 @@ void start_control_packet(FILE * fileFD, char * fileName) {
 	printf("start_cp[3] = %d\n", start_cp[3]);
 	printf("start_cp[4] = %x\n", start_cp[3+l1]);
 	printf("start_cp[5] = %d\n", start_cp[4+l1]);
-	printf("start_cp[6] = %d\n", start_cp[5+l1]); // TODO: Porque que isto e' um int???
+	printf("start_cp[6] = %s\n", &start_cp[5+l1]);
 
 }
 
@@ -90,7 +90,7 @@ void end_control_packet(FILE * fileFD, char * fileName) {
 	printf("end_cp[3] = %d\n", end_cp[3]);
 	printf("end_cp[4] = %x\n", end_cp[3+l1]);
 	printf("end_cp[5] = %d\n", end_cp[3+l1+1]);
-	printf("end_cp[6] = %d\n", end_cp[3+l1+2]); // TODO: Porque que isto e' um int???
+	printf("end_cp[6] = %s\n", &end_cp[3+l1+2]);
 
 }
 
@@ -125,7 +125,7 @@ void print_footer() {
 	printf("\n.---------------------------.---------------------------.\n");
 	  printf("|    Carlos Miguel Lucas    |    Maria Teresa Chaves    |\n");
 	  printf("|            -              |            -              |\n");
-	  printf("|      	 ei11140          |       up201306842         |\n");
+	  printf("|       	 ei11140          |       up201306842         |\n");
 	  printf("'---------------------------'---------------------------'\n\n");
 }
 
@@ -194,6 +194,9 @@ int main(int argc, char** argv) {
 
 		printf("\nTime-out interval -> ");
 		scanf("%d", &INT_TIMEOUT);
+
+		printf("Maximum information field size -> ");
+		scanf("%d", &MAX_INFO);
 
 		ll.baudrate = BAUDRATE;
 		ll.sequenceNumber = 0;

@@ -133,10 +133,10 @@ int llwrite(char * buf) {
 	char aux[MAX_SIZE];
 
 	// String size
-    int num = strlen(buf);
+	int num = strlen(buf);
 
 	// Envia a mensagem de newtio.c_cc[VMIN] em newtio.c_cc[VMIN] bytes
-    while(i < num+1) {
+  while(i < num+1) {
 
 		int send_bytes = 0;
 

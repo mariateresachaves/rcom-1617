@@ -8,6 +8,7 @@
 int BAUDRATE;
 int RETRANSMISSIONS;
 int INT_TIMEOUT;
+int MAX_INFO;
 #define MODEMDEVICE "/dev/ttyS1"
 
 #define RECEIVER 0
