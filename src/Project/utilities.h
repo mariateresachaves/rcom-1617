@@ -6,6 +6,8 @@
 
 //#define BAUDRATE B9600
 int BAUDRATE;
+int RETRANSMISSIONS;
+int INT_TIMEOUT;
 #define MODEMDEVICE "/dev/ttyS1"
 
 #define RECEIVER 0

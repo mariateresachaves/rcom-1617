@@ -1,8 +1,5 @@
 #include "datalink.h"
 
-// Sequence number
-int Ns = 0;
-
 void start_control_packet(FILE * fileFD, char * fileName) {
 
 	int fsize;
@@ -104,11 +101,11 @@ void data_packet(char * buf, int buf_size) {
 	char * data_packet = malloc(dp_size);
 
 	data_packet[0] = DATA;
-	data_packet[1] = Ns;
+	data_packet[1] = ll.sequenceNumber;
 	data_packet[2] = buf_size >> 8; // TODO:
 	data_packet[3] = buf_size & 0xFF; // TODO:
 
-	Ns = (Ns + 1) % 256;
+	ll.sequenceNumber = (ll.sequenceNumber + 1) % 256;
 
 	while(i != buf_size)
 		data_packet[i] = buf[i++];
@@ -183,12 +180,18 @@ int main(int argc, char** argv) {
 	print_baudrate();
 	scanf("%d", &BAUDRATE);
 
+	printf("\nMaximum number of retransmissions -> ");
+	scanf("%d", &RETRANSMISSIONS);
+
+	printf("\nTime-out interval -> ");
+	scanf("%d", &INT_TIMEOUT);
+
   memcpy(ll.port, argv[1], strlen(argv[1]));
 
 	ll.baudrate = BAUDRATE;
 	ll.sequenceNumber = 0;
-	ll.timeout = 3;
-	ll.numTransmissions = 3;
+	ll.timeout = INT_TIMEOUT;
+	ll.numTransmissions = RETRANSMISSIONS;
 	memcpy(ll.frame, "", strlen(""));
 
   al.fd = 0;

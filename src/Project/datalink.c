@@ -75,10 +75,6 @@ int open_port(char * port) {
     newtio.c_cc[VTIME]    = 3;   /* inter-character timer unused */
     newtio.c_cc[VMIN]     = 5;   /* blocking read until 5 chars received */
 
-
-    ll.timeout=3;
-    ll.numTransmissions=3;
-
     tcflush(al.fd, TCIFLUSH);
 
     if ( tcsetattr(al.fd,TCSANOW,&newtio) == -1) {
@@ -92,7 +88,7 @@ int open_port(char * port) {
 
 int llopen() {
 
-	printf("Opening port... \n");
+	printf("\nOpening port... \n");
 
 	al.fd = open_port(ll.port);
 
@@ -102,7 +98,7 @@ int llopen() {
 
 int llclose() {
 
-	printf("Closing port... \n");
+	printf("\nClosing port... \n");
 
 	if ( tcsetattr(al.fd,TCSANOW,&oldtio) == -1) {
 		perror("tcsetattr");
