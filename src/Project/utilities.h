@@ -4,7 +4,8 @@
 #define FALSE 0
 #define TRUE 1
 
-#define BAUDRATE B9600
+//#define BAUDRATE B9600
+int BAUDRATE;
 #define MODEMDEVICE "/dev/ttyS1"
 
 #define RECEIVER 0

@@ -116,6 +116,8 @@ void data_packet(char * buf, int buf_size) {
 	//llwrite(data_packet, dp_size);
 }
 
+// PRINT FUNCTIONS
+
 void print_header() {
 	printf("\n.--------------------------.--------------------------.\n");
 		printf("|    RCOM FIRST PROJECT    |    DATA LINK PROTOCOL    |\n");
@@ -142,6 +144,16 @@ void print_receiver() {
 		printf("'----------------'\n\n");
 }
 
+void print_baudrate() {
+	printf(" _________________________________________________\n");
+	printf("|       Baudrate values supported by RS-232       |\n");
+	printf(" -------------------------------------------------\n");
+	printf("|   300 |  1200 |  2400 |  4800 |   9600 |  14400 |\n");
+	printf("| 19200 | 28800 | 38400 | 57600 | 115200 | 230400 |\n");
+	printf(" -------------------------------------------------\n\n");
+	printf("Baudrate -> ");
+}
+
 int main(int argc, char** argv) {
 
 	char * buf;
@@ -166,7 +178,12 @@ int main(int argc, char** argv) {
 		exit(1);
 	}
 
-    memcpy(ll.port, argv[1], strlen(argv[1]));
+	print_header();
+
+	print_baudrate();
+	scanf("%d", &BAUDRATE);
+
+  memcpy(ll.port, argv[1], strlen(argv[1]));
 
 	ll.baudrate = BAUDRATE;
 	ll.sequenceNumber = 0;
@@ -174,9 +191,7 @@ int main(int argc, char** argv) {
 	ll.numTransmissions = 3;
 	memcpy(ll.frame, "", strlen(""));
 
-    al.fd = 0;
-
-	print_header();
+  al.fd = 0;
 
 	al.fd = llopen();
 
