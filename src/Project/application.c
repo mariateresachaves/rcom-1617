@@ -51,7 +51,7 @@ void start_control_packet(FILE * fileFD, char * fileName) {
 }
 
 void end_control_packet(FILE * fileFD, char * fileName) {
-	
+
 	int fsize;
 
 	fseek(fileFD, 0, SEEK_END);
@@ -124,13 +124,13 @@ int main(int argc, char** argv) {
 	int fileSize = 0;
 	FILE * fileFD;
 
- 	if ( (argc < 3) || 
-  	     ((strcmp("/dev/ttyS0", argv[1])!=0) && 
+ 	if ( (argc < 3) ||
+  	     ((strcmp("/dev/ttyS0", argv[1])!=0) &&
   	      (strcmp("/dev/ttyS1", argv[1])!=0) )) {
 		printf("Usage:\tnserial SerialPort\n\tex: nserial /dev/ttyS1 Receiver(0)/Transmitter(1)\n");
 		exit(1);
     }
-    
+
 	if (strcmp(argv[2], "0") == 0)
 		al.status = RECEIVER;
 	else if (strcmp(argv[2], "1") == 0)
@@ -161,7 +161,7 @@ int main(int argc, char** argv) {
 		scanf("%s", fileName);
 		fileFD = fopen(fileName, "rb" );
 		buf = malloc(1);
-		
+
 		// le o ficheiro byte a byte
 		while(fread(&buf[fileSize], sizeof(char), 1, fileFD)){
 			fileSize++;
@@ -170,16 +170,14 @@ int main(int argc, char** argv) {
 
 		// start_control_packet
 
-			// enviar para cada pacote de dados
-				// data_packet
-
-				// llwrite
+		// enviar para cada pacote de dados
+		// data_packet
 
 		// end_control_packet
 
 		// so para testar
 		//start_control_packet(fileFD, fileName);
-		end_control_packet(fileFD, fileName);
+		//end_control_packet(fileFD, fileName);
 
 		llwrite(buf);
 		llread();
@@ -194,12 +192,12 @@ int main(int argc, char** argv) {
 
 		memcpy(buf_reader, llread(), MAX_SIZE);
 		llwrite(buf_reader);
-		
+
 		printf("\nReceiver ended successfully\n");
 
 	}
 
-	
+
 	llclose();
 
 }

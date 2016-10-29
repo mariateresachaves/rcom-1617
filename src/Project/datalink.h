@@ -22,6 +22,6 @@ int llwrite(char * buf);
 void sendFlags(char * flagToSend, char * type);
 int send_message(char * message, int send_bytes);
 void receive_message(char * aux);
-int generate_bcc(char * buf, int size);
+int bcc_generator(char * buf, int size);
 
 #endif

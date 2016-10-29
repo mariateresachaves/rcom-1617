@@ -194,7 +194,7 @@ void receive_message(char * aux) {
     strcat(aux, buf);
 }
 
-int generate_bcc(char * buf, int size){
+int bcc_generator(char * buf, int size){
 	int i=4;
 
 	//bcc1
@@ -249,7 +249,7 @@ void destuffing(char * buf, int * buf_size) {
 
 		else if (buf[i] == 0x7D && buf[i+1] == 0x5D) {
 			buf[i] = FLAG_ESC;
-			(*buf_size)--;
+			(*buf_size);
 		}
 
 		i++;
@@ -333,7 +333,7 @@ int stateMachine() {
 			}
 			currentState++;
 		case 3: // BCC
-			generate_bcc(buf,res);
+			bcc_generator(buf,res);
 			switch (buf[currentState]) {
 				case A ^ C_UA:
 					break;
