@@ -5,8 +5,6 @@ int Ns = 0;
 
 void start_control_packet(FILE * fileFD, char * fileName) {
 
-	printf("FILENAME: %s", fileName);
-
 	int fsize;
 
 	fseek(fileFD, 0, SEEK_END);
@@ -25,7 +23,7 @@ void start_control_packet(FILE * fileFD, char * fileName) {
 
 	char * start_cp = malloc(l1+l2+5);
 
-	start_cp[0] = 0x2;
+	start_cp[0] = START;
 	start_cp[1] = 0x0;
 	start_cp[2] = l1;
 	strcpy(&start_cp[3], st);
@@ -42,7 +40,7 @@ void start_control_packet(FILE * fileFD, char * fileName) {
 	printf("st[3] = %x\n", st[3]);
 	printf("l1 = %d\n", l1);
 	printf("l2 = %d\n", l2);
-	printf("start_cp[0] = %x\n", start_cp[0]);
+	printf("start_cp[0] = %d\n", start_cp[0]);
 	printf("start_cp[1] = %x\n", start_cp[1]);
 	printf("start_cp[2] = %d\n", start_cp[2]);
 	printf("start_cp[3] = %d\n", start_cp[3]);
@@ -52,13 +50,60 @@ void start_control_packet(FILE * fileFD, char * fileName) {
 
 }
 
+void end_control_packet(FILE * fileFD, char * fileName) {
+	
+	int fsize;
+
+	fseek(fileFD, 0, SEEK_END);
+	fsize = ftell(fileFD);
+
+	char * et = malloc(4);
+
+	// LITTLE ENDIAN
+	et[0] = fsize % 0x100;
+	et[1] = (fsize/0x100) % 0x100;
+	et[2] = (fsize/0x10000) % 0x100;
+	et[3] = fsize/0x1000000;
+
+	int l1 = strlen(et);
+	int l2 = strlen(fileName);
+
+	char * end_cp = malloc(l1+l2+5);
+
+	end_cp[0] = END;
+	end_cp[1] = 0x0;
+	end_cp[2] = l1;
+	strcpy(&end_cp[3], et);
+	end_cp[3+l1] = 0x1;
+	end_cp[4+l1] = l2;
+	memcpy(&end_cp[5+l1], fileName, l2);
+
+	//llwrite(start_cp, l1+l2+5);
+
+	printf("File size: %d bytes\n", fsize);
+	printf("et[0] = %x\n", et[0]);
+	printf("et[1] = %x\n", et[1]);
+	printf("et[2] = %x\n", et[2]);
+	printf("et[3] = %x\n", et[3]);
+	printf("l1 = %d\n", l1);
+	printf("l2 = %d\n", l2);
+	printf("end_cp[0] = %d\n", end_cp[0]);
+	printf("end_cp[1] = %x\n", end_cp[1]);
+	printf("end_cp[2] = %d\n", end_cp[2]);
+	printf("end_cp[3] = %d\n", end_cp[3]);
+	printf("end_cp[4] = %x\n", end_cp[3+l1]);
+	printf("end_cp[5] = %d\n", end_cp[3+l1+1]);
+	printf("end_cp[6] = %d\n", end_cp[3+l1+2]); // TODO: Porque que isto e' um int???
+
+}
+
 void data_packet(char * buf, int buf_size) {
 
 	int i = 4;
 	int dp_size = buf_size + 4;
 	char * data_packet = malloc(dp_size);
 
-	data_packet[0] = 1;
+	data_packet[0] = DATA;
 	data_packet[1] = Ns;
 	data_packet[2] = buf_size >> 8; // TODO:
 	data_packet[3] = buf_size & 0xFF; // TODO:
@@ -134,6 +179,7 @@ int main(int argc, char** argv) {
 
 		// so para testar
 		//start_control_packet(fileFD, fileName);
+		end_control_packet(fileFD, fileName);
 
 		llwrite(buf);
 		llread();

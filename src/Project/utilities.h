@@ -15,6 +15,10 @@
 #define MAX_SIZE 255
 #define STOP_BYTE '\0'
 
+#define DATA 1
+#define START 2
+#define END 3
+
 
 #define FLAG 0x7E
 #define A 0x03
