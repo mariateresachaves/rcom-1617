@@ -1,2 +1,2 @@
-Curabitur sed tellus eleifend ex imperdiet lacinia ultricies nec nisl. Sed quis lorem a nunc ultrices eleifend. Vestibulum justo lacus, maximus vulputate mattis vitae, vehicula in diam. Integer metus.
-
+This is a test file that will be used
+to demonstrate the use of rcom project.

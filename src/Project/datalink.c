@@ -149,7 +149,6 @@ int llwrite(char * buf) {
 	}
 	
 	return res;
-
 }
 
 void sendFlags(char * flagToSend, char * type) {

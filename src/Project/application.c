@@ -1,5 +1,27 @@
 #include "datalink.h"
 
+// Sequence number
+int Ns = 0;
+
+void data_packet(char * buf, int buf_size) {
+
+	int i = 4;
+	int dp_size = buf_size + 4;
+	char * data_packet = malloc(dp_size);
+
+	data_packet[0] = 1;
+	data_packet[1] = Ns;
+	data_packet[2] = buf_size >> 8;
+	data_packet[3] = buf_size & 0xFF;
+
+	Ns = (Ns + 1) % 256;
+
+	while(i != buf_size)
+		data_packet[i] = buf[i++];
+
+	//llwrite(data_packet, dp_size);
+}
+
 int main(int argc, char** argv) {
 
 	char * buf;
@@ -50,12 +72,26 @@ int main(int argc, char** argv) {
 			fileSize++;
 			buf = realloc(buf, fileSize+newtio.c_cc[VMIN]);
 		}
+
+		// start_control_packet
+
+			// enviar para cada pacote de dados
+				// data_packet
+
+				// llwrite
+
+		// end_control_packet
+
 		llwrite(buf);
 		llread();
 
 		printf("\tTransmitter ended successfully\n");
 
 	} else if(al.status == RECEIVER) { // RECEIVER
+
+
+		// Verificar qual o tipo de pacote que esta a receber
+		// Dependendo do tipo de pacote tratar os dados recebidos
 
 		memcpy(buf_reader, llread(), MAX_SIZE);
 		llwrite(buf_reader);
