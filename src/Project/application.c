@@ -23,10 +23,10 @@ void start_control_packet(FILE * fileFD, char * fileName) {
 	start_cp[0] = START;
 	start_cp[1] = 0x0;
 	start_cp[2] = l1;
-	strcpy(&start_cp[3], st);
+	memcpy(&start_cp[3], st, l1+1);
 	start_cp[3+l1] = 0x1;
 	start_cp[4+l1] = l2;
-	memcpy(&start_cp[5+l1], fileName, l2);
+	memcpy(&start_cp[5+l1], fileName, l2+1);
 
 	//llwrite(start_cp, l1+l2+5);
 
@@ -42,8 +42,8 @@ void start_control_packet(FILE * fileFD, char * fileName) {
 	printf("start_cp[2] = %d\n", start_cp[2]);
 	printf("start_cp[3] = %d\n", start_cp[3]);
 	printf("start_cp[4] = %x\n", start_cp[3+l1]);
-	printf("start_cp[5] = %d\n", start_cp[3+l1+1]);
-	printf("start_cp[6] = %d\n", start_cp[3+l1+2]); // TODO: Porque que isto e' um int???
+	printf("start_cp[5] = %d\n", start_cp[4+l1]);
+	printf("start_cp[6] = %d\n", start_cp[5+l1]); // TODO: Porque que isto e' um int???
 
 }
 
@@ -177,39 +177,39 @@ int main(int argc, char** argv) {
 
 	print_header();
 
-	print_baudrate();
-	scanf("%d", &BAUDRATE);
+	memcpy(ll.port, argv[1], strlen(argv[1]));
 
-	printf("\nMaximum number of retransmissions -> ");
-	scanf("%d", &RETRANSMISSIONS);
-
-	printf("\nTime-out interval -> ");
-	scanf("%d", &INT_TIMEOUT);
-
-  memcpy(ll.port, argv[1], strlen(argv[1]));
-
-	ll.baudrate = BAUDRATE;
-	ll.sequenceNumber = 0;
-	ll.timeout = INT_TIMEOUT;
-	ll.numTransmissions = RETRANSMISSIONS;
-	memcpy(ll.frame, "", strlen(""));
-
-  al.fd = 0;
+	al.fd = 0;
 
 	al.fd = llopen();
 
+
 	if (al.status == TRANSMITTER) {
+
+		print_baudrate();
+		scanf("%d", &BAUDRATE);
+
+		printf("\nMaximum number of retransmissions -> ");
+		scanf("%d", &RETRANSMISSIONS);
+
+		printf("\nTime-out interval -> ");
+		scanf("%d", &INT_TIMEOUT);
+
+		ll.baudrate = BAUDRATE;
+		ll.sequenceNumber = 0;
+		ll.timeout = INT_TIMEOUT;
+		ll.numTransmissions = RETRANSMISSIONS;
+		memcpy(ll.frame, "", strlen(""));
 
 		print_transmitter();
 
-		//printf("String to send: ");
-    	//gets(buf);
 		printf("File Name: ");
 		scanf("%s", fileName);
 		fileFD = fopen(fileName, "rb" );
-		buf = malloc(1);
 
 		// le o ficheiro byte a byte
+		buf = malloc(1);
+
 		while(fread(&buf[fileSize], sizeof(char), 1, fileFD)){
 			fileSize++;
 			buf = realloc(buf, fileSize+newtio.c_cc[VMIN]);
@@ -219,8 +219,6 @@ int main(int argc, char** argv) {
 
 			// enviar para cada pacote de dados
 				// data_packet
-
-				// llwrite
 
 		// end_control_packet
 

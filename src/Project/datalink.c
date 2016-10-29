@@ -36,53 +36,53 @@ int open_port(char * port) {
 	(void) signal(SIGALRM, timer_handler);
 
 	al.fd = open(port, O_RDWR | O_NOCTTY );
-    if (al.fd <0) {perror(port); exit(-1); }
+	if (al.fd <0) {perror(port); exit(-1); }
 
-    if ( tcgetattr(al.fd,&oldtio) == -1) { /* save current port settings */
+	if ( tcgetattr(al.fd,&oldtio) == -1) { /* save current port settings */
 		perror("tcgetattr");
 		exit(-1);
-    }
+	}
 
-    bzero(&newtio, sizeof(newtio));
+	bzero(&newtio, sizeof(newtio));
 
-		if (BAUDRATE == 300)
-			newtio.c_cflag = B300 | CS8 | CLOCAL | CREAD;
-		else if (BAUDRATE == 1200)
-			newtio.c_cflag = B1200 | CS8 | CLOCAL | CREAD;
-		else if (BAUDRATE == 2400)
-			newtio.c_cflag = B2400 | CS8 | CLOCAL | CREAD;
-		else if (BAUDRATE == 4800)
-			newtio.c_cflag = B4800 | CS8 | CLOCAL | CREAD;
-		else if (BAUDRATE == 9600)
-			newtio.c_cflag = B9600 | CS8 | CLOCAL | CREAD;
-		else if (BAUDRATE == 19200)
-			newtio.c_cflag = B19200 | CS8 | CLOCAL | CREAD;
-		else if (BAUDRATE == 38400)
-			newtio.c_cflag = B38400 | CS8 | CLOCAL | CREAD;
-		else if (BAUDRATE == 57600)
-			newtio.c_cflag = B57600 | CS8 | CLOCAL | CREAD;
-		else if (BAUDRATE == 115200)
-			newtio.c_cflag = B115200 | CS8 | CLOCAL | CREAD;
-		else if (BAUDRATE == 230400)
-			newtio.c_cflag = B230400 | CS8 | CLOCAL | CREAD;
+	if (BAUDRATE == 300)
+		newtio.c_cflag = B300 | CS8 | CLOCAL | CREAD;
+	else if (BAUDRATE == 1200)
+		newtio.c_cflag = B1200 | CS8 | CLOCAL | CREAD;
+	else if (BAUDRATE == 2400)
+		newtio.c_cflag = B2400 | CS8 | CLOCAL | CREAD;
+	else if (BAUDRATE == 4800)
+		newtio.c_cflag = B4800 | CS8 | CLOCAL | CREAD;
+	else if (BAUDRATE == 9600)
+		newtio.c_cflag = B9600 | CS8 | CLOCAL | CREAD;
+	else if (BAUDRATE == 19200)
+		newtio.c_cflag = B19200 | CS8 | CLOCAL | CREAD;
+	else if (BAUDRATE == 38400)
+		newtio.c_cflag = B38400 | CS8 | CLOCAL | CREAD;
+	else if (BAUDRATE == 57600)
+		newtio.c_cflag = B57600 | CS8 | CLOCAL | CREAD;
+	else if (BAUDRATE == 115200)
+		newtio.c_cflag = B115200 | CS8 | CLOCAL | CREAD;
+	else if (BAUDRATE == 230400)
+		newtio.c_cflag = B230400 | CS8 | CLOCAL | CREAD;
 
-    newtio.c_iflag = IGNPAR;
-    newtio.c_oflag = OPOST;
+	newtio.c_iflag = IGNPAR;
+	newtio.c_oflag = OPOST;
 
-    /* set input mode (non-canonical, no echo,...) */
-    newtio.c_lflag = 0;
+	/* set input mode (non-canonical, no echo,...) */
+	newtio.c_lflag = 0;
 
-    newtio.c_cc[VTIME]    = 3;   /* inter-character timer unused */
-    newtio.c_cc[VMIN]     = 5;   /* blocking read until 5 chars received */
+	newtio.c_cc[VTIME]    = 3;   /* inter-character timer unused */
+	newtio.c_cc[VMIN]     = 5;   /* blocking read until 5 chars received */
 
-    tcflush(al.fd, TCIFLUSH);
+	tcflush(al.fd, TCIFLUSH);
 
-    if ( tcsetattr(al.fd,TCSANOW,&newtio) == -1) {
+	if ( tcsetattr(al.fd,TCSANOW,&newtio) == -1) {
 		perror("tcsetattr");
 		exit(-1);
-    }
+	}
 
-    return al.fd;
+	return al.fd;
 
 }
 
@@ -92,7 +92,7 @@ int llopen() {
 
 	al.fd = open_port(ll.port);
 
-    return al.fd;
+  return al.fd;
 
 }
 
@@ -103,9 +103,9 @@ int llclose() {
 	if ( tcsetattr(al.fd,TCSANOW,&oldtio) == -1) {
 		perror("tcsetattr");
 		exit(-1);
-    }
+  }
 
-    close(al.fd);
+  close(al.fd);
 
 }
 
