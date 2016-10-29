@@ -124,8 +124,8 @@ void print_header() {
 void print_footer() {
 	printf("\n.---------------------------.---------------------------.\n");
 	  printf("|    Carlos Miguel Lucas    |    Maria Teresa Chaves    |\n");
-	  printf("|            -                           -              |\n");
-	  printf("|       up201000717         |       up201306842         |\n");
+	  printf("|            -              |            -              |\n");
+	  printf("|      	 ei11140          |       up201306842         |\n");
 	  printf("'---------------------------'---------------------------'\n\n");
 }
 
