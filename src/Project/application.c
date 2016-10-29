@@ -116,6 +116,32 @@ void data_packet(char * buf, int buf_size) {
 	//llwrite(data_packet, dp_size);
 }
 
+void print_header() {
+	printf("\n.--------------------------.--------------------------.\n");
+		printf("|    RCOM FIRST PROJECT    |    DATA LINK PROTOCOL    |\n");
+		printf("'--------------------------'--------------------------'\n\n");
+}
+
+void print_footer() {
+	printf("\n.---------------------------.---------------------------.\n");
+	  printf("|    Carlos Miguel Lucas    |    Maria Teresa Chaves    |\n");
+	  printf("|            -                           -              |\n");
+	  printf("|       up201000717         |       up201306842         |\n");
+	  printf("'---------------------------'---------------------------'\n\n");
+}
+
+void print_transmitter() {
+	printf("\n.-------------------.\n");
+		printf("|    TRANSMITTER    |\n");
+		printf("'-------------------'\n\n");
+}
+
+void print_receiver() {
+	printf("\n.----------------.\n");
+		printf("|    RECEIVER    |\n");
+		printf("'----------------'\n\n");
+}
+
 int main(int argc, char** argv) {
 
 	char * buf;
@@ -150,11 +176,14 @@ int main(int argc, char** argv) {
 
     al.fd = 0;
 
-	printf("--- Welcome to the best RCOM project ever ---\n\n");
+	print_header();
 
 	al.fd = llopen();
 
 	if (al.status == TRANSMITTER) {
+
+		print_transmitter();
+
 		//printf("String to send: ");
     	//gets(buf);
 		printf("File Name: ");
@@ -170,8 +199,10 @@ int main(int argc, char** argv) {
 
 		// start_control_packet
 
-		// enviar para cada pacote de dados
-		// data_packet
+			// enviar para cada pacote de dados
+				// data_packet
+
+				// llwrite
 
 		// end_control_packet
 
@@ -180,23 +211,26 @@ int main(int argc, char** argv) {
 		//end_control_packet(fileFD, fileName);
 
 		llwrite(buf);
-		llread();
+		llread(0);
 
 		printf("\tTransmitter ended successfully\n");
 
 	} else if(al.status == RECEIVER) { // RECEIVER
 
+		print_receiver();
 
 		// Verificar qual o tipo de pacote que esta a receber
 		// Dependendo do tipo de pacote tratar os dados recebidos
 
-		memcpy(buf_reader, llread(), MAX_SIZE);
-		llwrite(buf_reader);
+		// memcpy(buf_reader, llread(), MAX_SIZE);
+		// llwrite(buf_reader); //not working i dont know why!!!
 
-		printf("\nReceiver ended successfully\n");
+		llread(1);
+		printf("\tReceiver ended successfully\n");
 
 	}
 
+	print_footer();
 
 	llclose();
 

@@ -92,15 +92,18 @@ int llclose() {
 
 }
 
-char * llread() {
+char * llread(int type) {
 
 	char aux[MAX_SIZE];
 
 	memset(aux, 0, MAX_SIZE);
 
 	while (STOP==FALSE) {       /* loop for input */
-  		receive_message(aux);
-  	}
+		receive_message(aux);
+	}
+
+	if(type == 1)
+		llwrite(aux);
 
 	//stateMachine();
 
