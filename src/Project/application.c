@@ -1,11 +1,48 @@
 #include "datalink.h"
 
-void start_control_packet(FILE * fileFD, char * fileName) {
+char SET2[5] = {FLAG, A, C_SET, A^C_SET, FLAG};
 
-	int fsize;
+void start_control_packet(FILE * fileFD, char * fileName, int file_size) {
+
+
+	char *stamanho = malloc((int) (file_size/256)+1);
+
+
+	sprintf(stamanho, "%d", file_size);
+
+	int sizestamanho = strlen(stamanho);
+	int sizenome = strlen(fileName);
+
+	char* pacote_start = malloc(40);
+
+	pacote_start[0] = START;
+	pacote_start[1] = 0x0;
+	pacote_start[2] = sizestamanho;
+	strcpy(&pacote_start[3], stamanho);
+	pacote_start[3+sizestamanho] = 0x1;
+	pacote_start[3+sizestamanho+1] = sizenome;
+	strcpy(&pacote_start[3+sizestamanho+2], fileName);
+
+	llwrite(pacote_start, 3+sizestamanho+2+sizenome);
+
+	printf("File size: %d bytes\n", file_size);
+	printf("st[0] = %s\n", stamanho);
+	printf("l1 = %d\n", sizestamanho);
+	printf("l2 = %d\n", sizenome);
+	printf("pacote_start[0] = %d\n", pacote_start[0]);
+	printf("pacote_start[1] = %x\n", pacote_start[1]);
+	printf("pacote_start[2] = %d\n", pacote_start[2]);
+	printf("pacote_start[3] = %d\n", pacote_start[3]);
+	printf("pacote_start[4] = %x\n", pacote_start[4]);
+	printf("pacote_start[5] = %d\n", pacote_start[5]);
+	printf("pacote_start[6] = %s\n", &pacote_start[6]);
+
+/*	int fsize;
 
 	fseek(fileFD, 0, SEEK_END);
 	fsize = ftell(fileFD);
+
+	printf("fsize = %d", fsize);
 
 	char * st = malloc(4);
 
@@ -14,6 +51,8 @@ void start_control_packet(FILE * fileFD, char * fileName) {
 	st[1] = (fsize/0x100) % 0x100;
 	st[2] = (fsize/0x10000) % 0x100;
 	st[3] = fsize/0x1000000;
+
+
 
 	int l1 = strlen(st);
 	int l2 = strlen(fileName);
@@ -28,23 +67,8 @@ void start_control_packet(FILE * fileFD, char * fileName) {
 	start_cp[4+l1] = l2;
 	memcpy(&start_cp[5+l1], fileName, l2+1);
 
-	//llwrite(start_cp, l1+l2+5);
-
-	printf("File size: %d bytes\n", fsize);
-	printf("st[0] = %x\n", st[0]);
-	printf("st[1] = %x\n", st[1]);
-	printf("st[2] = %x\n", st[2]);
-	printf("st[3] = %x\n", st[3]);
-	printf("l1 = %d\n", l1);
-	printf("l2 = %d\n", l2);
-	printf("start_cp[0] = %d\n", start_cp[0]);
-	printf("start_cp[1] = %x\n", start_cp[1]);
-	printf("start_cp[2] = %d\n", start_cp[2]);
-	printf("start_cp[3] = %d\n", start_cp[3]);
-	printf("start_cp[4] = %x\n", start_cp[3+l1]);
-	printf("start_cp[5] = %d\n", start_cp[4+l1]);
-	printf("start_cp[6] = %s\n", &start_cp[5+l1]);
-
+	llwrite(start_cp, l1+l2+5);
+	*/
 }
 
 void end_control_packet(FILE * fileFD, char * fileName) {
@@ -75,23 +99,7 @@ void end_control_packet(FILE * fileFD, char * fileName) {
 	end_cp[4+l1] = l2;
 	memcpy(&end_cp[5+l1], fileName, l2);
 
-	//llwrite(start_cp, l1+l2+5);
-
-	printf("File size: %d bytes\n", fsize);
-	printf("et[0] = %x\n", et[0]);
-	printf("et[1] = %x\n", et[1]);
-	printf("et[2] = %x\n", et[2]);
-	printf("et[3] = %x\n", et[3]);
-	printf("l1 = %d\n", l1);
-	printf("l2 = %d\n", l2);
-	printf("end_cp[0] = %d\n", end_cp[0]);
-	printf("end_cp[1] = %x\n", end_cp[1]);
-	printf("end_cp[2] = %d\n", end_cp[2]);
-	printf("end_cp[3] = %d\n", end_cp[3]);
-	printf("end_cp[4] = %x\n", end_cp[3+l1]);
-	printf("end_cp[5] = %d\n", end_cp[3+l1+1]);
-	printf("end_cp[6] = %s\n", &end_cp[3+l1+2]);
-
+	llwrite(end_cp, l1+l2+5);
 }
 
 void data_packet(char * buf, int buf_size) {
@@ -102,15 +110,18 @@ void data_packet(char * buf, int buf_size) {
 
 	data_packet[0] = DATA;
 	data_packet[1] = ll.sequenceNumber;
-	data_packet[2] = buf_size >> 8; // TODO:
-	data_packet[3] = buf_size & 0xFF; // TODO:
+	data_packet[2] = buf_size >> 8;
+	data_packet[3] = buf_size & 0x0F;
 
 	ll.sequenceNumber = (ll.sequenceNumber + 1) % 256;
 
-	while(i != buf_size)
-		data_packet[i] = buf[i++];
+	while(i != buf_size){
+		data_packet[i] = buf[i];
+		i++;
+	}
 
-	//llwrite(data_packet, dp_size);
+
+	llwrite(data_packet, dp_size);
 }
 
 // PRINT FUNCTIONS
@@ -206,6 +217,8 @@ int main(int argc, char** argv) {
 
 		print_transmitter();
 
+		sendFlags(SET2, "SET");
+
 		printf("File Name: ");
 		scanf("%s", fileName);
 		fileFD = fopen(fileName, "rb" );
@@ -215,10 +228,52 @@ int main(int argc, char** argv) {
 
 		while(fread(&buf[fileSize], sizeof(char), 1, fileFD)){
 			fileSize++;
-			buf = realloc(buf, fileSize+newtio.c_cc[VMIN]);
+			buf = realloc(buf, fileSize+MAX_INFO);
 		}
 
+		int i=0;
+		char aux[MAX_SIZE];
+
+		// String size
+		int num = strlen(buf);
+
+
+
+		start_control_packet(fileFD, fileName, fileSize+1);
+
+		// Envia a mensagem de MAX_INFO em MAX_INFO bytes
+	  while(i < num+1) {
+
+			int send_bytes = 0;
+
+			memset(aux, 0, MAX_INFO);
+
+			if(MAX_INFO > strlen(buf)-i) {
+				memcpy(aux, buf + i, strlen(buf)-i);
+				send_bytes = strlen(buf)-i;
+
+				aux[send_bytes] = 0;
+				send_bytes++;
+			}
+			else {
+				memcpy(aux, buf + i, MAX_INFO);
+				send_bytes = MAX_INFO;
+
+				aux[send_bytes] = 0;
+			}
+
+			data_packet(aux, send_bytes);
+
+			sleep(1);
+
+			i+=MAX_INFO;
+
+		}
+
+		end_control_packet(fileFD, fileName);
+
 		// start_control_packet
+
 
 			// enviar para cada pacote de dados
 				// data_packet
@@ -229,8 +284,8 @@ int main(int argc, char** argv) {
 		//start_control_packet(fileFD, fileName);
 		//end_control_packet(fileFD, fileName);
 
-		llwrite(buf);
-		llread(0);
+		//llwrite(buf);
+		//llread(0);
 
 		printf("\tTransmitter ended successfully\n");
 
@@ -244,7 +299,7 @@ int main(int argc, char** argv) {
 		// memcpy(buf_reader, llread(), MAX_SIZE);
 		// llwrite(buf_reader); //not working i dont know why!!!
 
-		llread(1);
+		//llread(1);
 		printf("\tReceiver ended successfully\n");
 
 	}

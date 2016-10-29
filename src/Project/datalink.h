@@ -18,7 +18,7 @@ int open_port();
 int llopen();
 int llclose();
 char * llread();
-int llwrite(char * buf);
+int llwrite(char * buf, int buf_size);
 void sendFlags(char * flagToSend, char * type);
 int send_message(char * message, int send_bytes);
 void receive_message(char * aux);

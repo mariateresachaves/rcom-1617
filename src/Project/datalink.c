@@ -6,15 +6,15 @@ int times = 0, flag_timer = 0;
 
 int SUCCESS_UA = 0;
 
-char SET[5] = {FLAG,A,C_SET,0,FLAG};
-char DISC[5] = {FLAG,A,C_DISC,0,FLAG};
-char UA[5] = {FLAG,A,C_UA,0,FLAG};
-char RR[5] = {FLAG,A,C_RR,0,FLAG};
-char REJ[5] = {FLAG,A,C_REJ,0,FLAG};
-char RR_ACK[5] = {FLAG,A,C_RR_ACK,0,FLAG};
-char REJ_ACK[5] = {FLAG,A,C_REJ_ACK,0,FLAG};
-char INFO_0[5] = {FLAG,A,C_INFO_0,0,FLAG};
-char INFO_1[5] = {FLAG,A,C_INFO_1,0,FLAG};
+char SET[5] = {FLAG, A, C_SET, A^C_SET, FLAG};
+char DISC[5] = {FLAG, A, C_DISC, 0, FLAG};
+char UA[5] = {FLAG, A, C_UA, 0, FLAG};
+char RR[5] = {FLAG, A, C_RR, 0, FLAG};
+char REJ[5] = {FLAG, A, C_REJ, 0, FLAG};
+char RR_ACK[5] = {FLAG, A, C_RR_ACK, 0, FLAG};
+char REJ_ACK[5] = {FLAG, A, C_REJ_ACK, 0, FLAG};
+char INFO_0[5] = {FLAG, A, C_INFO_0, 0, FLAG};
+char INFO_1[5] = {FLAG, A, C_INFO_1, 0, FLAG};
 
 void timer_handler() {
 	printf("<--- Alarm number %d --->\n", times);
@@ -72,8 +72,8 @@ int open_port(char * port) {
 	/* set input mode (non-canonical, no echo,...) */
 	newtio.c_lflag = 0;
 
-	newtio.c_cc[VTIME]    = 3;   /* inter-character timer unused */
-	newtio.c_cc[VMIN]     = 5;   /* blocking read until 5 chars received */
+	newtio.c_cc[VTIME]    = 1;   /* inter-character timer unused */
+	newtio.c_cc[VMIN]     = 0;   /* blocking read until 5 chars received */
 
 	tcflush(al.fd, TCIFLUSH);
 
@@ -119,30 +119,40 @@ char * llread(int type) {
 		receive_message(aux);
 	}
 
-	if(type == 1)
-		llwrite(aux);
+	//if(type == 1)
+		//llwrite(aux);
 
 	//stateMachine();
 
 	return aux;
 }
 
-int llwrite(char * buf) {
+int llwrite(char * buf, int buf_size) {
 
-	int i=0, res;
+	int res;
+
+	res = write(al.fd, buf, buf_size);
+
+	printf("RES: %d", res);
+
+	ll.sequenceNumber = (ll.sequenceNumber + 1) % 256;
+
+	return res;
+
+	/*int i=0, res;
 	char aux[MAX_SIZE];
 
 	// String size
 	int num = strlen(buf);
 
-	// Envia a mensagem de newtio.c_cc[VMIN] em newtio.c_cc[VMIN] bytes
+	// Envia a mensagem de MAX_INFO em MAX_INFO bytes
   while(i < num+1) {
 
 		int send_bytes = 0;
 
-		memset(aux, 0, newtio.c_cc[VMIN]);
+		memset(aux, 0, MAX_INFO);
 
-		if(newtio.c_cc[VMIN] > strlen(buf)-i) {
+		if(MAX_INFO > strlen(buf)-i) {
 			memcpy(aux, buf + i, strlen(buf)-i);
 			send_bytes = strlen(buf)-i;
 
@@ -150,8 +160,8 @@ int llwrite(char * buf) {
 			send_bytes++;
 		}
 		else {
-			memcpy(aux, buf + i, newtio.c_cc[VMIN]);
-			send_bytes = newtio.c_cc[VMIN];
+			memcpy(aux, buf + i, MAX_INFO);
+			send_bytes = MAX_INFO;
 
 			aux[send_bytes] = 0;
 		}
@@ -162,15 +172,14 @@ int llwrite(char * buf) {
 
 		sleep(1);
 
-		i+=newtio.c_cc[VMIN];
+		i+=MAX_INFO;
 
 	}
 
-	return res;
+	return res;*/
 }
 
 void sendFlags(char * flagToSend, char * type) {
-
 	write(al.fd, flagToSend, 5);
 	printf("<--- A enviar Flag ");
 	printFlags(flagToSend, type);
@@ -187,7 +196,7 @@ int send_message(char * message, int send_bytes) {
 
     sendFlags(SET, "SET");*/
 
-    //res = read(al.fd, buf, newtio.c_cc[VMIN]);
+    //res = read(al.fd, buf, MAX_INFO);
 
     //printFlags(buf, "UA");
 
@@ -200,11 +209,12 @@ int send_message(char * message, int send_bytes) {
 
 void receive_message(char * aux) {
 
-    int res;
+    int res=0;
+		while(!res){
+			res = read(al.fd, buf, MAX_INFO);
+		}
 
-   	res = read(al.fd, buf, newtio.c_cc[VMIN]);
-
-	buf[res] = 0;
+		buf[res] = 0;
 
     printf("Received: %s:%d\n", buf, res);
 
@@ -233,6 +243,27 @@ int bcc_generator(char * buf, int size){
 	return buf[3];
 }
 
+int BCC_check(char *buff, int buf_size){
+	char bcc=0x00;
+	int i=1;
+
+	// BCC1
+	while(i<4)
+		bcc^=buff[i++];
+
+	if(bcc!=0x00) return -1; // fail BCC1
+
+	bcc = 0x00;
+
+	// BCC2
+	while(i<buf_size)
+		bcc^=buff[i++];
+
+	if(bcc!=0x00) return -2; // fail BCC2
+
+	return 0; // Success
+}
+
 void stuffing(char * buf, int * buf_size) {
 
 	int i = 1;
@@ -240,12 +271,14 @@ void stuffing(char * buf, int * buf_size) {
 	while(i < (*buf_size)) {
 
 		if (buf[i] == FLAG) {
+			memmove(&buf[i+2], &buf[i+1], (*buf_size)+1-i);
 			buf[i] = 0x7D;
 			buf[i+1] = 0x5E;
 			(*buf_size)++;
 		}
 
 		else if  (buf[i] == FLAG_ESC) {
+			memmove(&buf[i+2], &buf[i+1], (*buf_size)+1-i);
 			buf[i] = 0x7D;
 			buf[i+1] = 0x5D;
 			(*buf_size)++;
@@ -263,11 +296,13 @@ void destuffing(char * buf, int * buf_size) {
 	while(i < (*buf_size)) {
 
 		if (buf[i] == 0x7D && buf[i+1] == 0x5E) {
+			memmove(&buf[i], &buf[i+1], (*buf_size)+1-i);
 			buf[i] = FLAG;
 			(*buf_size)--;
 		}
 
 		else if (buf[i] == 0x7D && buf[i+1] == 0x5D) {
+			memmove(&buf[i], &buf[i+1], (*buf_size)+1-i);
 			buf[i] = FLAG_ESC;
 			(*buf_size);
 		}
@@ -279,12 +314,14 @@ void destuffing(char * buf, int * buf_size) {
 
 int stateMachine() {
 
-	int res;
+	int res=0;
 	int currentState = 0;
 
 	while (1){
 
-	res = read(al.fd, buf, newtio.c_cc[VMIN]);
+	while(!res) {
+		res = read(al.fd, buf, MAX_INFO);
+	}
 
 	switch (currentState) {
 		case 0: // FLAG
