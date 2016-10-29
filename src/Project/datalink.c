@@ -236,6 +236,27 @@ void stuffing(char * buf, int * buf_size) {
 
 }
 
+void destuffing(char * buf, int * buf_size) {
+
+	int i = 1;
+
+	while(i < (*buf_size)) {
+
+		if (buf[i] == 0x7D && buf[i+1] == 0x5E) {
+			buf[i] = FLAG;
+			(*buf_size)--;
+		}
+
+		else if (buf[i] == 0x7D && buf[i+1] == 0x5D) {
+			buf[i] = FLAG_ESC;
+			(*buf_size)--;
+		}
+
+		i++;
+	}
+
+}
+
 int stateMachine() {
 
 	int res;
