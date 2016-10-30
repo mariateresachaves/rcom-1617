@@ -55,6 +55,7 @@ struct LinkLayer {
 	unsigned int sequenceNumber;		//Número de sequência da trama
 	unsigned int timeout;						//Valor do timer
 	unsigned int numTransmissions; 	//Numero de tentativas em caso de falha
+	unsigned int numPackets;
 
 	char frame[MAX_SIZE]; 					// Trama
 } ll;

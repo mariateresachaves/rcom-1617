@@ -110,6 +110,7 @@ void start_control_packet(FILE * fileFD, char * fileName, int file_size) {
 void send_all_dataPackets(char * buf, FILE * fileFD, char * fileName, int fileSize) {
 	int i=0, str_size = strlen(buf);
 	char aux[MAX_SIZE];
+	ll.numPackets = 0;
 
 	start_control_packet(fileFD, fileName, fileSize+1);
 
@@ -133,6 +134,7 @@ void send_all_dataPackets(char * buf, FILE * fileFD, char * fileName, int fileSi
 		//data_packet(aux, send_bytes);
 		//sleep(1);
 		i+=MAX_INFO;
+		ll.numPackets++;
 	}
 
 	//end_control_packet(fileFD, fileName);

@@ -230,6 +230,8 @@ int sm_write(char side, char * type, char * data, char size) {
 
 			case 1: // Receive a UA
 				state = 4;
+
+				//receive_ua(side, type, data, );
 				break;
 
 			case 2: // Receive a DISC
@@ -248,7 +250,13 @@ int sm_write(char side, char * type, char * data, char size) {
 }
 
 void llwrite(char * packet, int packet_size) {
+	while (ll.numPackets > 0) {
+		if (ll.numPackets % 2)
+			sm_write(A_TRANSMITTER, INFO_1, packet, packet_size);
 
+		else
+			sm_write(A_TRANSMITTER, INFO_0, packet, packet_size);
 
-
+		ll.numPackets--;
+	}
 }
