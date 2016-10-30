@@ -170,20 +170,41 @@ int sm_command(char side, char * type, char * data, char size) {
 
 	else if (!strcmp(DISC, type)) {
 		state = 2;
-		printf("A enviar um DISC\n");
-		// TODO: write the DISC message
+
+		res = write_packet(A_TRANSMITTER, DISC, "", 4);
+
+		printf("DEPOIS DE ENVIAR O PACKET DISC = %d\n", res);
+
+		if (res <= 0) {
+			printf("Cannot send a DISC at the moment!\n");
+			return -1;
+		}
 	}
 
 	else if (!strcmp(INFO_0, type)) {
 		state = 3;
-		printf("A enviar um INFO_0\n");
-		// TODO: write the INFO_0 message
+
+		res = write_packet(A_TRANSMITTER, INFO_0, data, size+5);
+
+		printf("DEPOIS DE ENVIAR O PACKET INFO_0 = %d\n", res);
+
+		if (res <= 0) {
+			printf("Cannot send a INFO_0 at the moment!\n");
+			return -1;
+		}
 	}
 
 	else if (!strcmp(INFO_1, type)) {
 		state = 3;
-		printf("A enviar um INFO_1\n");
-		// TODO: write the INFO_1 message
+
+		res = write_packet(A_TRANSMITTER, INFO_1, data, size+5);
+
+		printf("DEPOIS DE ENVIAR O PACKET INFO_1 = %d\n", res);
+
+		if (res <= 0) {
+			printf("Cannot send a INFO_1 at the moment!\n");
+			return -1;
+		}
 	}
 }
 
