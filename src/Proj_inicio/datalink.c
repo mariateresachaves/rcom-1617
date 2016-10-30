@@ -130,12 +130,12 @@ void stuffing(char * buf, int * buf_size) {
 	}
 }
 
-int write_packet(char * side, char * type, char * data, int size) {
+int write_packet(char side, char * type, char * data, int size) {
 	char packet[MAX_SIZE];
 	int i=0, res;
 
 	packet[0] = FLAG;
-	packet[1] = *side;
+	packet[1] = side;
 	packet[2] = *type;
 
 	if(size > 4)
@@ -152,7 +152,7 @@ int write_packet(char * side, char * type, char * data, int size) {
 	return res;
 }
 
-int sm_command(char * side, char * type, char * data, char size) {
+int sm_command(char side, char * type, char * data, char size) {
 	int res;
 
 	if (!strcmp(SET, type)) {
@@ -188,7 +188,7 @@ int sm_command(char * side, char * type, char * data, char size) {
 }
 
 // State machine to write a message
-int sm_write(char * side, char * type, char * data, char size) {
+int sm_write(char side, char * type, char * data, char size) {
 	int e;
 
 	while (1) {

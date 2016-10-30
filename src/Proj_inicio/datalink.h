@@ -18,9 +18,9 @@ void llopen();
 void llclose();
 void bcc_generator(char * buf, int size);
 void stuffing(char * buf, int * buf_size);
-int write_packet(char * side, char * type, char * data, int size);
-int sm_command(char * side, char * type, char * data, char size);
-int sm_write(char * side, char * type, char * data, char size);
+int write_packet(char side, char * type, char * data, int size);
+int sm_command(char side, char * type, char * data, char size);
+int sm_write(char side, char * type, char * data, char size);
 void llwrite(char * packet, int packet_size);
 
 #endif
