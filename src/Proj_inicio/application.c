@@ -105,7 +105,7 @@ void start_control_packet(FILE * fileFD, char * fileName, int file_size) {
 
 	printf("Vou entrar no llwrite....\n");
 	//llwrite(start_cp, scp_size);
-	write(al.fd,0x05,4);
+	write(al.fd,start_cp,scp_size);
 }
 
 void send_all_dataPackets(char * buf, FILE * fileFD, char * fileName, int fileSize) {
@@ -154,22 +154,22 @@ void receive_packets(FILE *fileFD) {
 	while (1) {
 		switch (packet){
 			case START_PACKET:
-				size = read(al.fd,buf,3);
-
+				size = read(al.fd,buf,sizeof(buf));
 				if(size>0){
-						printf("--- SIZE: %d ---\n", size);
+						/*printf("--- SIZE: %d ---\n", size);
 						for (i=0;i<size;i++)
-							printf("--- CONTENT: %x ---\n", buf[i]);
+							printf("--- CONTENT: %x ---\n", buf[i]);*/
 					if (buf[0]==START){
 						printf("--- RECEIVING START PACKET ---\n");
-						break;
 						for (i=1; i<size; i += (buf[i+1]+2) ){
 							if (buf[i]==0x00){
 								file_size=realloc(file_size, buf[i+1]+1);
 								memcpy(file_size, &buf[i+2], buf[i+1]);
+								printf("SIZE ------- %d\n",file_size);
 							} else if (buf[i]==0x01){
 								file_name=realloc(file_name, buf[i+1]+1);
 								memcpy(file_name, &buf[i+2], buf[i+1]);
+								printf("NAME ------- %s\n",file_name);
 							}
 						}
 						packet++;

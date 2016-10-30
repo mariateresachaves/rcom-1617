@@ -79,21 +79,21 @@ void llopen() {
 		exit(-1);
 	}
 
-	if (al.status == TRANSMITTER)
+	/*if (al.status == TRANSMITTER)
 		sm_write(A_TRANSMITTER, SET, "", 0);
 
 	else if (al.status == RECEIVER) {
 		// TODO: Se for o receiver recebe um SET e tenta enviar um UA
-	}
+	}*/
 }
 
 void llclose() {
 
-	if (al.status == TRANSMITTER)
+	/*if (al.status == TRANSMITTER)
 		sm_write(A_TRANSMITTER, DISC, "", 0);
 
 	else if (al.status == RECEIVER)
-		// TODO: Se for o receiver recebe um DISC e tenta enviar um DISC
+		// TODO: Se for o receiver recebe um DISC e tenta enviar um DISC*/
 
 	printf("\nClosing port... \n");
 
