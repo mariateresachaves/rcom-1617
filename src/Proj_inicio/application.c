@@ -1,5 +1,12 @@
+/*! \file */
+
 #include "datalink.h"
 
+/**
+ * @brief Function to verify the user-inserted arguments.
+ * @param argc - number of arguments inserted.
+ * @param argv - arguments inserted.
+ */
 void check_args(int argc, char ** argv) {
 	if ( (argc < 3) || ((strcmp("/dev/ttyS0", argv[1])!=0) &&
   	                  (strcmp("/dev/ttyS1", argv[1])!=0) )) {
@@ -17,14 +24,18 @@ void check_args(int argc, char ** argv) {
 	}
 }
 
-// PRINT FUNCTIONS
-
+/**
+ * @brief Prints the header of the project.
+ */
 void print_header() {
 	printf("\n.--------------------------.--------------------------.\n");
 		printf("|    RCOM FIRST PROJECT    |    DATA LINK PROTOCOL    |\n");
 		printf("'--------------------------'--------------------------'\n\n");
 }
 
+/**
+ * @brief Prints the footer of the project.
+ */
 void print_footer() {
 	printf("\n.---------------------------.---------------------------.\n");
 	  printf("|    Carlos Miguel Lucas    |    Maria Teresa Chaves    |\n");
@@ -33,18 +44,27 @@ void print_footer() {
 	  printf("'---------------------------'---------------------------'\n\n");
 }
 
+/**
+ * @brief Print a message to indicate that this side is the transmitter.
+ */
 void print_transmitter() {
 	printf("\n.-------------------.\n");
 		printf("|    TRANSMITTER    |\n");
 		printf("'-------------------'\n\n");
 }
 
+/**
+ * @brief Print a message to indicate that this side is the receiver.
+ */
 void print_receiver() {
 	printf("\n.----------------.\n");
 		printf("|    RECEIVER    |\n");
 		printf("'----------------'\n\n");
 }
 
+/**
+ * @brief Print a table with baudrate values supported by the RS-232.
+ */
 void print_baudrate() {
 	printf(" _________________________________________\n");
 	printf("|   Baudrate values supported by RS-232   |\n");
@@ -55,6 +75,9 @@ void print_baudrate() {
 	printf("Baudrate -> ");
 }
 
+/**
+ * @brief Asks the user to insert the baudrate, number of retransmissions, time-out interval and the maximum size of information field.
+ */
 void ask_parameters() {
 	print_baudrate();
 	scanf("%d", &BAUDRATE);
@@ -75,6 +98,12 @@ void ask_parameters() {
 	memcpy(ll.frame, "", strlen(""));
 }
 
+/**
+ * @brief Sends a start control packet.
+ * @param fileFD - file descriptor of the file.
+ * @param fileName - file name.
+ * @param file_size - file size.
+ */
 void start_control_packet(FILE * fileFD, char * fileName, int file_size) {
 	int fsize;
 
@@ -108,6 +137,13 @@ void start_control_packet(FILE * fileFD, char * fileName, int file_size) {
 	write(al.fd,start_cp,scp_size);
 }
 
+/**
+ * @brief Sends all the fragments of the file.
+ * @param buf - file content.
+ * @param fileFD - file descriptor of the file.
+ * @param fileName - file name.
+ * @param fileSize - file size.
+ */
 void send_all_dataPackets(char * buf, FILE * fileFD, char * fileName, int fileSize) {
 	int i=0, str_size = strlen(buf);
 	char aux[MAX_SIZE];
@@ -141,6 +177,10 @@ void send_all_dataPackets(char * buf, FILE * fileFD, char * fileName, int fileSi
 	//end_control_packet(fileFD, fileName);
 }
 
+/**
+ * @brief Function to receive the packets.
+ * @param fileFD - file descriptor of the file.
+ */
 void receive_packets(FILE *fileFD) {
 	int packet = 0;
 	int size;
@@ -183,7 +223,12 @@ void receive_packets(FILE *fileFD) {
 
 }
 
-int main(int argc, char** argv) {
+/**
+ * @brief Main function.
+ * @param argc - number of arguments inserted.
+ * @param argv - arguments inserted.
+ */
+void main(int argc, char** argv) {
 	char fileName[MAX_SIZE];
 	char * buf = malloc(1);
 	FILE * fileFD;

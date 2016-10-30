@@ -1,3 +1,5 @@
+/*! \file */
+
 #ifndef UTILITIES_H
 #define UTILITIES_H
 
@@ -48,20 +50,26 @@ int MAX_INFO;
 
 #define FLAG_ESC 0x7D
 
+/**
+ * @brief Contains some information about the application layer.
+ */
 struct ApplicationLayer{
-	int fd; 				//fd - descritor da porta ativa
-	int status;			//transmissor ou recetor
+	int fd; 	///< Descriptor of the active port.
+	int status;	///< Transmitter or Receiver.
 } al;
 
+/**
+ * @brief Contains some information about the data link layer.
+ */
 struct LinkLayer {
-	char port[20];									// /dev/ttyS0
-	int baudrate;										//velocidade de transmissão
-	unsigned int sequenceNumber;		//Número de sequência da trama
-	unsigned int timeout;						//Valor do timer
-	unsigned int numTransmissions; 	//Numero de tentativas em caso de falha
-	unsigned int numPackets;
+	char port[20];					///< /dev/ttyS0
+	int baudrate;					///< Transition velocity.
+	unsigned int sequenceNumber;	///< Sequence number of the packet
+	unsigned int timeout;			///< Timer value
+	unsigned int numTransmissions; 	///< Number of retransmissions in case of fail.
+	unsigned int numPackets;		///< Number of packets.
 
-	char frame[MAX_SIZE]; 					// Trama
+	char frame[MAX_SIZE]; 			///< Packet.
 } ll;
 
 struct termios oldtio, newtio;
