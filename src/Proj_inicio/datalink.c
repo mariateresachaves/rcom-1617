@@ -91,12 +91,81 @@ void llclose() {
   close(al.fd);
 }
 
-void sm_command(char * type) {
+void bcc_generator(char * buf, int size) {
+	int i=4;
+
+	//bcc1
+	buf[3] = buf[1] ^ buf[2];
+
+	//bcc2
+	if (size > 4){
+		buf[size-1] = 0;
+
+		while (i<size-1){
+			buf[size-1] ^= buf[i];
+			i++;
+		}
+	}
+}
+
+void stuffing(char * buf, int * buf_size) {
+	int i = 1;
+
+	while(i < (*buf_size)) {
+		if (buf[i] == FLAG) {
+			memmove(&buf[i+2], &buf[i+1], (*buf_size)+1-i);
+			buf[i] = 0x7D;
+			buf[i+1] = 0x5E;
+			(*buf_size)++;
+		}
+
+		else if  (buf[i] == FLAG_ESC) {
+			memmove(&buf[i+2], &buf[i+1], (*buf_size)+1-i);
+			buf[i] = 0x7D;
+			buf[i+1] = 0x5D;
+			(*buf_size)++;
+		}
+
+		i++;
+	}
+}
+
+int write_packet(char * side, char * type, char * data, int size) {
+	char packet[MAX_SIZE];
+	int i=0, res;
+
+	packet[0] = FLAG;
+	packet[1] = *side;
+	packet[2] = *type;
+
+	if(size > 4)
+		for (i = 4; i < size-1; i++)
+			packet[i] = data[i-4];
+
+	packet[size] = FLAG;
+
+	bcc_generator(packet, size);
+	stuffing(packet, &size);
+
+	res = write(al.fd, packet, size+1);
+
+	return res;
+}
+
+int sm_command(char * side, char * type, char * data, char size) {
+	int res;
+
 	if (!strcmp(SET, type)) {
 		state = 1;
-		printf("A enviar um ");
-		printFlags(type, "SET");
-		// TODO: write the SET message
+
+		res = write_packet(A_TRANSMITTER, SET, "", 4);
+
+		printf("DEPOIS DE ENVIAR O PACKET RES = %d\n", res);
+
+		if (res <= 0) {
+			printf("Cannot send a SET at the moment!\n");
+			return -1;
+		}
 	}
 
 	else if (!strcmp(DISC, type)) {
@@ -119,11 +188,17 @@ void sm_command(char * type) {
 }
 
 // State machine to write a message
-void state_machine(char side, char * type) {
+int sm_write(char * side, char * type, char * data, char size) {
+	int e;
+
 	while (1) {
 		switch (state) {
 			case 0: // Send a command
-				sm_command(type);
+				e = sm_command(side, type, data, size);
+				if (e == -1) return e;
+
+				state++;
+				continue;
 				break;
 
 			case 1: // Receive a UA
@@ -147,6 +222,6 @@ void state_machine(char side, char * type) {
 
 void llwrite(char * packet, int packet_size) {
 
-	state_machine(A_TRANSMITTER, SET);
+	sm_write(A_TRANSMITTER, SET, "", 4);
 
 }
