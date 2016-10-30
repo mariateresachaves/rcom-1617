@@ -96,15 +96,16 @@ void start_control_packet(FILE * fileFD, char * fileName, int file_size) {
 	char * start_cp = malloc(scp_size);
 
 	start_cp[0] = START;
-	start_cp[1] = 0x0;
+	start_cp[1] = 0x00;
 	start_cp[2] = l1;
 	memcpy(&start_cp[3], st, l1+1);
-	start_cp[3+l1] = 0x1;
+	start_cp[3+l1] = 0x01;
 	start_cp[4+l1] = l2;
 	memcpy(&start_cp[5+l1], fileName, l2+1);
 
 	printf("Vou entrar no llwrite....\n");
-	llwrite(start_cp, scp_size);
+	//llwrite(start_cp, scp_size);
+	write(al.fd,0x05,4);
 }
 
 void send_all_dataPackets(char * buf, FILE * fileFD, char * fileName, int fileSize) {
@@ -114,7 +115,7 @@ void send_all_dataPackets(char * buf, FILE * fileFD, char * fileName, int fileSi
 
 	start_control_packet(fileFD, fileName, fileSize+1);
 
-  while(i < str_size+1) {
+  /*while(i < str_size+1) {
 		int send_bytes = 0;
 		memset(aux, 0, MAX_INFO);
 
@@ -135,9 +136,51 @@ void send_all_dataPackets(char * buf, FILE * fileFD, char * fileName, int fileSi
 		//sleep(1);
 		i+=MAX_INFO;
 		ll.numPackets++;
-	}
+	}*/
 
 	//end_control_packet(fileFD, fileName);
+}
+
+void receive_packets(FILE *fileFD) {
+	int packet = 0;
+	int size;
+	char buf[MAX_SIZE];
+
+	char * file_name = malloc(1);
+	char * file_size = malloc(1);
+
+	int i;
+
+	while (1) {
+		switch (packet){
+			case START_PACKET:
+				size = read(al.fd,buf,3);
+
+				if(size>0){
+						printf("--- SIZE: %d ---\n", size);
+						for (i=0;i<size;i++)
+							printf("--- CONTENT: %x ---\n", buf[i]);
+					if (buf[0]==START){
+						printf("--- RECEIVING START PACKET ---\n");
+						break;
+						for (i=1; i<size; i += (buf[i+1]+2) ){
+							if (buf[i]==0x00){
+								file_size=realloc(file_size, buf[i+1]+1);
+								memcpy(file_size, &buf[i+2], buf[i+1]);
+							} else if (buf[i]==0x01){
+								file_name=realloc(file_name, buf[i+1]+1);
+								memcpy(file_name, &buf[i+2], buf[i+1]);
+							}
+						}
+						packet++;
+					}
+				} else {
+					continue;
+				}
+		}
+		break;
+	}
+
 }
 
 int main(int argc, char** argv) {
@@ -180,6 +223,8 @@ int main(int argc, char** argv) {
 	} else if(al.status == RECEIVER) {
 
 		print_receiver();
+
+		receive_packets(fileFD);
 
 		printf("\tReceiver ended successfully\n");
 

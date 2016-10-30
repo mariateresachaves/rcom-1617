@@ -23,6 +23,10 @@ int MAX_INFO;
 #define START 2
 #define END 3
 
+#define START_PACKET 0
+#define DATA_PACKET 1
+#define END_PACKET 2
+
 
 #define FLAG 0x7E
 #define A_TRANSMITTER 0x03
