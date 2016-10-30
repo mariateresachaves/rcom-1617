@@ -78,9 +78,23 @@ void llopen() {
 		perror("tcsetattr");
 		exit(-1);
 	}
+
+	if (al.status == TRANSMITTER)
+		sm_write(A_TRANSMITTER, SET, "", 0);
+
+	else if (al.status == RECEIVER) {
+		// TODO: Se for o receiver recebe um SET e tenta enviar um UA
+	}
 }
 
 void llclose() {
+
+	if (al.status == TRANSMITTER)
+		sm_write(A_TRANSMITTER, DISC, "", 0);
+
+	else if (al.status == RECEIVER)
+		// TODO: Se for o receiver recebe um DISC e tenta enviar um DISC
+
 	printf("\nClosing port... \n");
 
 	if ( tcsetattr(al.fd,TCSANOW,&oldtio) == -1) {
@@ -160,8 +174,6 @@ int sm_command(char side, char * type, char * data, char size) {
 
 		res = write_packet(A_TRANSMITTER, SET, "", 4);
 
-		printf("DEPOIS DE ENVIAR O PACKET RES = %d\n", res);
-
 		if (res <= 0) {
 			printf("Cannot send a SET at the moment!\n");
 			return -1;
@@ -172,8 +184,6 @@ int sm_command(char side, char * type, char * data, char size) {
 		state = 2;
 
 		res = write_packet(A_TRANSMITTER, DISC, "", 4);
-
-		printf("DEPOIS DE ENVIAR O PACKET DISC = %d\n", res);
 
 		if (res <= 0) {
 			printf("Cannot send a DISC at the moment!\n");
@@ -186,8 +196,6 @@ int sm_command(char side, char * type, char * data, char size) {
 
 		res = write_packet(A_TRANSMITTER, INFO_0, data, size+5);
 
-		printf("DEPOIS DE ENVIAR O PACKET INFO_0 = %d\n", res);
-
 		if (res <= 0) {
 			printf("Cannot send a INFO_0 at the moment!\n");
 			return -1;
@@ -198,8 +206,6 @@ int sm_command(char side, char * type, char * data, char size) {
 		state = 3;
 
 		res = write_packet(A_TRANSMITTER, INFO_1, data, size+5);
-
-		printf("DEPOIS DE ENVIAR O PACKET INFO_1 = %d\n", res);
 
 		if (res <= 0) {
 			printf("Cannot send a INFO_1 at the moment!\n");
@@ -243,6 +249,6 @@ int sm_write(char side, char * type, char * data, char size) {
 
 void llwrite(char * packet, int packet_size) {
 
-	sm_write(A_TRANSMITTER, SET, "", 4);
+
 
 }
