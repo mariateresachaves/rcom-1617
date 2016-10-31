@@ -60,6 +60,16 @@ void stuffing(char * buf, int * buf_size);
 int write_packet(char side, char * type, char * data, int size);
 
 /**
+ * @brief State machine to read a message.
+ * @param side - tells which side is (transmitter or receiver).
+ * @param type - type of the command to read.
+ * @param data - data to read with the command.
+ * @param size - data size.
+ * @return
+ */
+int sm_read(char side, char * type, char * data, char size);
+
+/**
  * @brief State machine to write a command.
  * @param side - tells which side is (transmitter or receiver).
  * @param type - type of the command to write.
@@ -85,5 +95,12 @@ int sm_write(char side, char * type, char * data, char size);
  * @param packet_size - packet size.
  */
 void llwrite(char * packet, int packet_size);
+
+/**
+ * @brief Function to read the packet with the state machine that read's a message.
+ * @param packet - packet to read.
+ * @param packet_size - packet size.
+ */
+void llread(char *packet, int packet_size);
 
 #endif

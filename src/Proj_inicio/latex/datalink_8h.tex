@@ -1,52 +1,57 @@
-\hypertarget{datalink_8h}{}\section{datalink.\+h File Reference}
-\label{datalink_8h}\index{datalink.\+h@{datalink.\+h}}
-{\ttfamily \#include $<$sys/types.\+h$>$}\\*
-{\ttfamily \#include $<$sys/stat.\+h$>$}\\*
-{\ttfamily \#include $<$fcntl.\+h$>$}\\*
-{\ttfamily \#include $<$termios.\+h$>$}\\*
-{\ttfamily \#include $<$stdio.\+h$>$}\\*
-{\ttfamily \#include $<$stdlib.\+h$>$}\\*
-{\ttfamily \#include $<$string.\+h$>$}\\*
-{\ttfamily \#include $<$unistd.\+h$>$}\\*
-{\ttfamily \#include $<$signal.\+h$>$}\\*
-{\ttfamily \#include \char`\"{}utilities.\+h\char`\"{}}\\*
+\hypertarget{datalink_8h}{\section{datalink.\-h File Reference}
+\label{datalink_8h}\index{datalink.\-h@{datalink.\-h}}
+}
+{\ttfamily \#include $<$sys/types.\-h$>$}\\*
+{\ttfamily \#include $<$sys/stat.\-h$>$}\\*
+{\ttfamily \#include $<$fcntl.\-h$>$}\\*
+{\ttfamily \#include $<$termios.\-h$>$}\\*
+{\ttfamily \#include $<$stdio.\-h$>$}\\*
+{\ttfamily \#include $<$stdlib.\-h$>$}\\*
+{\ttfamily \#include $<$string.\-h$>$}\\*
+{\ttfamily \#include $<$unistd.\-h$>$}\\*
+{\ttfamily \#include $<$signal.\-h$>$}\\*
+{\ttfamily \#include \char`\"{}utilities.\-h\char`\"{}}\\*
 \subsection*{Functions}
 \begin{DoxyCompactItemize}
 \item 
-void \hyperlink{datalink_8h_a27faba7d6574b6477b59a16f3e029c3a}{print\+Flags} (char $\ast$flags, char $\ast$type)
+void \hyperlink{datalink_8h_a27faba7d6574b6477b59a16f3e029c3a}{print\-Flags} (char $\ast$flags, char $\ast$type)
 \begin{DoxyCompactList}\small\item\em Function to print flag content. \end{DoxyCompactList}\item 
-void \hyperlink{datalink_8h_a1a3a23394e144e622f6800bb89d9b647}{def\+\_\+c\+\_\+cflag} ()\hypertarget{datalink_8h_a1a3a23394e144e622f6800bb89d9b647}{}\label{datalink_8h_a1a3a23394e144e622f6800bb89d9b647}
+\hypertarget{datalink_8h_a1a3a23394e144e622f6800bb89d9b647}{void \hyperlink{datalink_8h_a1a3a23394e144e622f6800bb89d9b647}{def\-\_\-c\-\_\-cflag} ()}\label{datalink_8h_a1a3a23394e144e622f6800bb89d9b647}
 
-\begin{DoxyCompactList}\small\item\em Function to define newtio.\+c\+\_\+cflag depending on the baudrate. \end{DoxyCompactList}\item 
-void \hyperlink{datalink_8h_a2a166e3581f3c360647fc14116a6f329}{llopen} ()\hypertarget{datalink_8h_a2a166e3581f3c360647fc14116a6f329}{}\label{datalink_8h_a2a166e3581f3c360647fc14116a6f329}
+\begin{DoxyCompactList}\small\item\em Function to define newtio.\-c\-\_\-cflag depending on the baudrate. \end{DoxyCompactList}\item 
+\hypertarget{datalink_8h_a2a166e3581f3c360647fc14116a6f329}{void \hyperlink{datalink_8h_a2a166e3581f3c360647fc14116a6f329}{llopen} ()}\label{datalink_8h_a2a166e3581f3c360647fc14116a6f329}
 
 \begin{DoxyCompactList}\small\item\em Function to open the port and to establish the connection between transmitter and receiver. \end{DoxyCompactList}\item 
-void \hyperlink{datalink_8h_a4642718c4d93877c226246de80c8c0e7}{llclose} ()\hypertarget{datalink_8h_a4642718c4d93877c226246de80c8c0e7}{}\label{datalink_8h_a4642718c4d93877c226246de80c8c0e7}
+\hypertarget{datalink_8h_a4642718c4d93877c226246de80c8c0e7}{void \hyperlink{datalink_8h_a4642718c4d93877c226246de80c8c0e7}{llclose} ()}\label{datalink_8h_a4642718c4d93877c226246de80c8c0e7}
 
 \begin{DoxyCompactList}\small\item\em Function to disconnect transmitter and receiver connection and to close the port. \end{DoxyCompactList}\item 
-void \hyperlink{datalink_8h_a5f8dd3d5fa7807382b2a0aefe3602264}{bcc\+\_\+generator} (char $\ast$buf, int size)
+void \hyperlink{datalink_8h_a5f8dd3d5fa7807382b2a0aefe3602264}{bcc\-\_\-generator} (char $\ast$buf, int size)
 \begin{DoxyCompactList}\small\item\em Function to generate the bcc value for a given data. \end{DoxyCompactList}\item 
-void \hyperlink{datalink_8h_acb4b7c8baca626e0ae40d23e1e36de44}{stuffing} (char $\ast$buf, int $\ast$buf\+\_\+size)
+void \hyperlink{datalink_8h_acb4b7c8baca626e0ae40d23e1e36de44}{stuffing} (char $\ast$buf, int $\ast$buf\-\_\-size)
 \begin{DoxyCompactList}\small\item\em Function that guarantee the transparency. Byte stuffing technique applied to a given data. \end{DoxyCompactList}\item 
-int \hyperlink{datalink_8h_a42c511baae1dab9b7c76bdd1fec80a88}{write\+\_\+packet} (char side, char $\ast$type, char $\ast$data, int size)
+int \hyperlink{datalink_8h_a42c511baae1dab9b7c76bdd1fec80a88}{write\-\_\-packet} (char side, char $\ast$type, char $\ast$data, int size)
 \begin{DoxyCompactList}\small\item\em Function to write a packet from transmitter or from receiver. \end{DoxyCompactList}\item 
-int \hyperlink{datalink_8h_a1bcf87cb2c676c4a6d3e1dbb589ca303}{sm\+\_\+command} (char side, char $\ast$type, char $\ast$data, char size)
+int \hyperlink{datalink_8h_a8439e6759513aee492437b50597b4ccf}{sm\-\_\-read} (char side, char $\ast$type, char $\ast$data, char size)
+\begin{DoxyCompactList}\small\item\em State machine to read a message. \end{DoxyCompactList}\item 
+int \hyperlink{datalink_8h_a1bcf87cb2c676c4a6d3e1dbb589ca303}{sm\-\_\-command} (char side, char $\ast$type, char $\ast$data, char size)
 \begin{DoxyCompactList}\small\item\em State machine to write a command. \end{DoxyCompactList}\item 
-int \hyperlink{datalink_8h_a9e6a440226f91e6417fb5aac8d86cc51}{sm\+\_\+write} (char side, char $\ast$type, char $\ast$data, char size)
+int \hyperlink{datalink_8h_a9e6a440226f91e6417fb5aac8d86cc51}{sm\-\_\-write} (char side, char $\ast$type, char $\ast$data, char size)
 \begin{DoxyCompactList}\small\item\em State machine to write a message. \end{DoxyCompactList}\item 
-void \hyperlink{datalink_8h_ae331e61729e55338819b020ca8f3ce4c}{llwrite} (char $\ast$packet, int packet\+\_\+size)
-\begin{DoxyCompactList}\small\item\em Function to send a information packet with the state machine that write\textquotesingle{}s a message. \end{DoxyCompactList}\end{DoxyCompactItemize}
+void \hyperlink{datalink_8h_ae331e61729e55338819b020ca8f3ce4c}{llwrite} (char $\ast$packet, int packet\-\_\-size)
+\begin{DoxyCompactList}\small\item\em Function to send a information packet with the state machine that write's a message. \end{DoxyCompactList}\item 
+void \hyperlink{datalink_8h_abb43ed73215bcb8331a4a427001e4130}{llread} (char $\ast$packet, int packet\-\_\-size)
+\begin{DoxyCompactList}\small\item\em Function to read the packet with the state machine that read's a message. \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \subsection{Function Documentation}
-\index{datalink.\+h@{datalink.\+h}!bcc\+\_\+generator@{bcc\+\_\+generator}}
-\index{bcc\+\_\+generator@{bcc\+\_\+generator}!datalink.\+h@{datalink.\+h}}
-\subsubsection[{bcc\+\_\+generator(char $\ast$buf, int size)}]{\setlength{\rightskip}{0pt plus 5cm}void bcc\+\_\+generator (
+\hypertarget{datalink_8h_a5f8dd3d5fa7807382b2a0aefe3602264}{\index{datalink.\-h@{datalink.\-h}!bcc\-\_\-generator@{bcc\-\_\-generator}}
+\index{bcc\-\_\-generator@{bcc\-\_\-generator}!datalink.h@{datalink.\-h}}
+\subsubsection[{bcc\-\_\-generator}]{\setlength{\rightskip}{0pt plus 5cm}void bcc\-\_\-generator (
 \begin{DoxyParamCaption}
 \item[{char $\ast$}]{buf, }
 \item[{int}]{size}
 \end{DoxyParamCaption}
-)}\hypertarget{datalink_8h_a5f8dd3d5fa7807382b2a0aefe3602264}{}\label{datalink_8h_a5f8dd3d5fa7807382b2a0aefe3602264}
+)}}\label{datalink_8h_a5f8dd3d5fa7807382b2a0aefe3602264}
 
 
 Function to generate the bcc value for a given data. 
@@ -58,33 +63,52 @@ Function to generate the bcc value for a given data.
 {\em size} & -\/ data size. \\
 \hline
 \end{DoxyParams}
-\index{datalink.\+h@{datalink.\+h}!llwrite@{llwrite}}
-\index{llwrite@{llwrite}!datalink.\+h@{datalink.\+h}}
-\subsubsection[{llwrite(char $\ast$packet, int packet\+\_\+size)}]{\setlength{\rightskip}{0pt plus 5cm}void llwrite (
+\hypertarget{datalink_8h_abb43ed73215bcb8331a4a427001e4130}{\index{datalink.\-h@{datalink.\-h}!llread@{llread}}
+\index{llread@{llread}!datalink.h@{datalink.\-h}}
+\subsubsection[{llread}]{\setlength{\rightskip}{0pt plus 5cm}void llread (
 \begin{DoxyParamCaption}
 \item[{char $\ast$}]{packet, }
-\item[{int}]{packet\+\_\+size}
+\item[{int}]{packet\-\_\-size}
 \end{DoxyParamCaption}
-)}\hypertarget{datalink_8h_ae331e61729e55338819b020ca8f3ce4c}{}\label{datalink_8h_ae331e61729e55338819b020ca8f3ce4c}
+)}}\label{datalink_8h_abb43ed73215bcb8331a4a427001e4130}
 
 
-Function to send a information packet with the state machine that write\textquotesingle{}s a message. 
+Function to read the packet with the state machine that read's a message. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em packet} & -\/ packet to read. \\
+\hline
+{\em packet\-\_\-size} & -\/ packet size. \\
+\hline
+\end{DoxyParams}
+\hypertarget{datalink_8h_ae331e61729e55338819b020ca8f3ce4c}{\index{datalink.\-h@{datalink.\-h}!llwrite@{llwrite}}
+\index{llwrite@{llwrite}!datalink.h@{datalink.\-h}}
+\subsubsection[{llwrite}]{\setlength{\rightskip}{0pt plus 5cm}void llwrite (
+\begin{DoxyParamCaption}
+\item[{char $\ast$}]{packet, }
+\item[{int}]{packet\-\_\-size}
+\end{DoxyParamCaption}
+)}}\label{datalink_8h_ae331e61729e55338819b020ca8f3ce4c}
+
+
+Function to send a information packet with the state machine that write's a message. 
 
 
 \begin{DoxyParams}{Parameters}
 {\em packet} & -\/ packet to send. \\
 \hline
-{\em packet\+\_\+size} & -\/ packet size. \\
+{\em packet\-\_\-size} & -\/ packet size. \\
 \hline
 \end{DoxyParams}
-\index{datalink.\+h@{datalink.\+h}!print\+Flags@{print\+Flags}}
-\index{print\+Flags@{print\+Flags}!datalink.\+h@{datalink.\+h}}
-\subsubsection[{print\+Flags(char $\ast$flags, char $\ast$type)}]{\setlength{\rightskip}{0pt plus 5cm}void print\+Flags (
+\hypertarget{datalink_8h_a27faba7d6574b6477b59a16f3e029c3a}{\index{datalink.\-h@{datalink.\-h}!print\-Flags@{print\-Flags}}
+\index{print\-Flags@{print\-Flags}!datalink.h@{datalink.\-h}}
+\subsubsection[{print\-Flags}]{\setlength{\rightskip}{0pt plus 5cm}void print\-Flags (
 \begin{DoxyParamCaption}
 \item[{char $\ast$}]{flags, }
 \item[{char $\ast$}]{type}
 \end{DoxyParamCaption}
-)}\hypertarget{datalink_8h_a27faba7d6574b6477b59a16f3e029c3a}{}\label{datalink_8h_a27faba7d6574b6477b59a16f3e029c3a}
+)}}\label{datalink_8h_a27faba7d6574b6477b59a16f3e029c3a}
 
 
 Function to print flag content. 
@@ -96,16 +120,16 @@ Function to print flag content.
 {\em type} & -\/ flag name. \\
 \hline
 \end{DoxyParams}
-\index{datalink.\+h@{datalink.\+h}!sm\+\_\+command@{sm\+\_\+command}}
-\index{sm\+\_\+command@{sm\+\_\+command}!datalink.\+h@{datalink.\+h}}
-\subsubsection[{sm\+\_\+command(char side, char $\ast$type, char $\ast$data, char size)}]{\setlength{\rightskip}{0pt plus 5cm}int sm\+\_\+command (
+\hypertarget{datalink_8h_a1bcf87cb2c676c4a6d3e1dbb589ca303}{\index{datalink.\-h@{datalink.\-h}!sm\-\_\-command@{sm\-\_\-command}}
+\index{sm\-\_\-command@{sm\-\_\-command}!datalink.h@{datalink.\-h}}
+\subsubsection[{sm\-\_\-command}]{\setlength{\rightskip}{0pt plus 5cm}int sm\-\_\-command (
 \begin{DoxyParamCaption}
 \item[{char}]{side, }
 \item[{char $\ast$}]{type, }
 \item[{char $\ast$}]{data, }
 \item[{char}]{size}
 \end{DoxyParamCaption}
-)}\hypertarget{datalink_8h_a1bcf87cb2c676c4a6d3e1dbb589ca303}{}\label{datalink_8h_a1bcf87cb2c676c4a6d3e1dbb589ca303}
+)}}\label{datalink_8h_a1bcf87cb2c676c4a6d3e1dbb589ca303}
 
 
 State machine to write a command. 
@@ -124,16 +148,44 @@ State machine to write a command.
 \begin{DoxyReturn}{Returns}
 
 \end{DoxyReturn}
-\index{datalink.\+h@{datalink.\+h}!sm\+\_\+write@{sm\+\_\+write}}
-\index{sm\+\_\+write@{sm\+\_\+write}!datalink.\+h@{datalink.\+h}}
-\subsubsection[{sm\+\_\+write(char side, char $\ast$type, char $\ast$data, char size)}]{\setlength{\rightskip}{0pt plus 5cm}int sm\+\_\+write (
+\hypertarget{datalink_8h_a8439e6759513aee492437b50597b4ccf}{\index{datalink.\-h@{datalink.\-h}!sm\-\_\-read@{sm\-\_\-read}}
+\index{sm\-\_\-read@{sm\-\_\-read}!datalink.h@{datalink.\-h}}
+\subsubsection[{sm\-\_\-read}]{\setlength{\rightskip}{0pt plus 5cm}int sm\-\_\-read (
 \begin{DoxyParamCaption}
 \item[{char}]{side, }
 \item[{char $\ast$}]{type, }
 \item[{char $\ast$}]{data, }
 \item[{char}]{size}
 \end{DoxyParamCaption}
-)}\hypertarget{datalink_8h_a9e6a440226f91e6417fb5aac8d86cc51}{}\label{datalink_8h_a9e6a440226f91e6417fb5aac8d86cc51}
+)}}\label{datalink_8h_a8439e6759513aee492437b50597b4ccf}
+
+
+State machine to read a message. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em side} & -\/ tells which side is (transmitter or receiver). \\
+\hline
+{\em type} & -\/ type of the command to read. \\
+\hline
+{\em data} & -\/ data to read with the command. \\
+\hline
+{\em size} & -\/ data size. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+\hypertarget{datalink_8h_a9e6a440226f91e6417fb5aac8d86cc51}{\index{datalink.\-h@{datalink.\-h}!sm\-\_\-write@{sm\-\_\-write}}
+\index{sm\-\_\-write@{sm\-\_\-write}!datalink.h@{datalink.\-h}}
+\subsubsection[{sm\-\_\-write}]{\setlength{\rightskip}{0pt plus 5cm}int sm\-\_\-write (
+\begin{DoxyParamCaption}
+\item[{char}]{side, }
+\item[{char $\ast$}]{type, }
+\item[{char $\ast$}]{data, }
+\item[{char}]{size}
+\end{DoxyParamCaption}
+)}}\label{datalink_8h_a9e6a440226f91e6417fb5aac8d86cc51}
 
 
 State machine to write a message. 
@@ -152,14 +204,14 @@ State machine to write a message.
 \begin{DoxyReturn}{Returns}
 
 \end{DoxyReturn}
-\index{datalink.\+h@{datalink.\+h}!stuffing@{stuffing}}
-\index{stuffing@{stuffing}!datalink.\+h@{datalink.\+h}}
-\subsubsection[{stuffing(char $\ast$buf, int $\ast$buf\+\_\+size)}]{\setlength{\rightskip}{0pt plus 5cm}void stuffing (
+\hypertarget{datalink_8h_acb4b7c8baca626e0ae40d23e1e36de44}{\index{datalink.\-h@{datalink.\-h}!stuffing@{stuffing}}
+\index{stuffing@{stuffing}!datalink.h@{datalink.\-h}}
+\subsubsection[{stuffing}]{\setlength{\rightskip}{0pt plus 5cm}void stuffing (
 \begin{DoxyParamCaption}
 \item[{char $\ast$}]{buf, }
-\item[{int $\ast$}]{buf\+\_\+size}
+\item[{int $\ast$}]{buf\-\_\-size}
 \end{DoxyParamCaption}
-)}\hypertarget{datalink_8h_acb4b7c8baca626e0ae40d23e1e36de44}{}\label{datalink_8h_acb4b7c8baca626e0ae40d23e1e36de44}
+)}}\label{datalink_8h_acb4b7c8baca626e0ae40d23e1e36de44}
 
 
 Function that guarantee the transparency. Byte stuffing technique applied to a given data. 
@@ -168,19 +220,19 @@ Function that guarantee the transparency. Byte stuffing technique applied to a g
 \begin{DoxyParams}{Parameters}
 {\em buf} & -\/ data. \\
 \hline
-{\em buf\+\_\+size} & -\/ data size. \\
+{\em buf\-\_\-size} & -\/ data size. \\
 \hline
 \end{DoxyParams}
-\index{datalink.\+h@{datalink.\+h}!write\+\_\+packet@{write\+\_\+packet}}
-\index{write\+\_\+packet@{write\+\_\+packet}!datalink.\+h@{datalink.\+h}}
-\subsubsection[{write\+\_\+packet(char side, char $\ast$type, char $\ast$data, int size)}]{\setlength{\rightskip}{0pt plus 5cm}int write\+\_\+packet (
+\hypertarget{datalink_8h_a42c511baae1dab9b7c76bdd1fec80a88}{\index{datalink.\-h@{datalink.\-h}!write\-\_\-packet@{write\-\_\-packet}}
+\index{write\-\_\-packet@{write\-\_\-packet}!datalink.h@{datalink.\-h}}
+\subsubsection[{write\-\_\-packet}]{\setlength{\rightskip}{0pt plus 5cm}int write\-\_\-packet (
 \begin{DoxyParamCaption}
 \item[{char}]{side, }
 \item[{char $\ast$}]{type, }
 \item[{char $\ast$}]{data, }
 \item[{int}]{size}
 \end{DoxyParamCaption}
-)}\hypertarget{datalink_8h_a42c511baae1dab9b7c76bdd1fec80a88}{}\label{datalink_8h_a42c511baae1dab9b7c76bdd1fec80a88}
+)}}\label{datalink_8h_a42c511baae1dab9b7c76bdd1fec80a88}
 
 
 Function to write a packet from transmitter or from receiver. 

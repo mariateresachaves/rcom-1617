@@ -172,6 +172,28 @@ int read_packet(char * buf, int buf_size) {
 		printf("-- BUF %d --> %x\n",i,buf[i]);
 }
 
+int sm_read(char side, char * type, char * data, char size) {
+	while (1) {
+		switch (state) {
+			case 0: // FLAG
+				break;
+
+			case 1: // FLAG_ESC
+				break;
+
+			case 2: // BCC
+				break;
+
+			case 3: // Reply UA
+				break;
+
+			case 4: // Exit
+				break;
+		}
+		if (state == 4) break;
+	}
+}
+
 int sm_command(char side, char * type, char * data, char size) {
 	int res;
 
@@ -220,7 +242,6 @@ int sm_command(char side, char * type, char * data, char size) {
 	}
 }
 
-// State machine to write a message
 int sm_write(char side, char * type, char * data, char size) {
 	int e;
 
@@ -256,10 +277,7 @@ int sm_write(char side, char * type, char * data, char size) {
 }
 
 void llwrite(char * packet, int packet_size) {
-
-
 	while (ll.numPackets > 0) {
-		printf("A ENVIAR ------------ %s\n", packet);
 		if (ll.numPackets % 2)
 			sm_write(A_TRANSMITTER, INFO_1, packet, packet_size);
 
@@ -270,6 +288,7 @@ void llwrite(char * packet, int packet_size) {
 	}
 }
 
-int llread(char *buf, int buf_size){
-	read_packet(buf, buf_size);
+void llread(char *packet, int packet_size) {
+	//sm_read(A_RECEIVER, ??, packet, packet_size);
+	//read_packet(buf, buf_size);
 }

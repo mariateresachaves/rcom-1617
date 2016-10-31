@@ -132,9 +132,9 @@ void start_control_packet(FILE * fileFD, char * fileName, int file_size) {
 	start_cp[4+l1] = l2;
 	memcpy(&start_cp[5+l1], fileName, l2+1);
 
-	printf("Vou entrar no llwrite....\n");
 	//llwrite(start_cp, scp_size);
-	write(al.fd,start_cp,scp_size);
+	write(al.fd, start_cp, scp_size);
+	free(start_cp);
 }
 
 void data_packet(char * buf, int buf_size) {
@@ -202,10 +202,10 @@ void send_all_dataPackets(char * buf, FILE * fileFD, char * fileName, int fileSi
 void receive_packets(FILE *fileFD) {
 	int packet = 0;
 	int size;
-	char buf[MAX_SIZE];
+	char * buf = malloc(MAX_SIZE);
 	//char buf_data[MAX_SIZE]
 
-	char * file_name = malloc(1);
+	char * file_name = malloc(MAX_SIZE);
 	char * file_size = malloc(1);
 	char * file = malloc(1);
 
@@ -214,15 +214,14 @@ void receive_packets(FILE *fileFD) {
 	int i;
 
 	while (1) {
+
+		size = read(al.fd, buf, MAX_SIZE);
+
 		switch (packet){
 			case START_PACKET:
-				size = read(al.fd,buf,sizeof(buf));
 				if(size>0){
-						/*printf("--- SIZE: %d ---\n", size);
-						for (i=0;i<size;i++)
-							printf("--- CONTENT: %x ---\n", buf[i]);*/
 					if (buf[0]==START){
-						printf("--- RECEIVING START PACKET ---\n");
+						printf("\n--- RECEIVING START PACKET ---\n");
 						for (i=1; i<size; i += (buf[i+1]+2) ){
 							if (buf[i]==0x00){
 								file_size=realloc(file_size, buf[i+1]+1);
@@ -234,15 +233,18 @@ void receive_packets(FILE *fileFD) {
 								printf("NAME ------- %s\n",file_name);
 							}
 						}
+						for (i=0;i<size;i++)
+							printf("--- CONTENT: %x ---\n", buf[i]);
 						packet++;
 						//break;
 					}
+					printf("\n--- END OF START PACKET ---\n");
 				} else {
 					continue;
 				}
 			case DATA_PACKET:
 				//memset(buf, 0, size);
-				size = llread(buf,sizeof(buf));
+				size = read(al.fd, buf, MAX_SIZE);
 				printf("--- SIZE: %d ---\n", size);
 				//for (i=0;i<size;i++)
 					//printf("--- CONTENT: %x ---\n", buf[i]);

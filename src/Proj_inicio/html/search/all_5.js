@@ -3,5 +3,6 @@ var searchData=
   ['linklayer',['LinkLayer',['../struct_link_layer.html',1,'']]],
   ['llclose',['llclose',['../datalink_8h.html#a4642718c4d93877c226246de80c8c0e7',1,'datalink.c']]],
   ['llopen',['llopen',['../datalink_8h.html#a2a166e3581f3c360647fc14116a6f329',1,'datalink.c']]],
+  ['llread',['llread',['../datalink_8h.html#abb43ed73215bcb8331a4a427001e4130',1,'datalink.c']]],
   ['llwrite',['llwrite',['../datalink_8h.html#ae331e61729e55338819b020ca8f3ce4c',1,'datalink.c']]]
 ];
