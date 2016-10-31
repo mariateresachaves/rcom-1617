@@ -166,6 +166,12 @@ int write_packet(char side, char * type, char * data, int size) {
 	return res;
 }
 
+int read_packet(char * buf, int buf_size) {
+	int i;
+	for (i=0;i<buf_size;i++)
+		printf("-- BUF %d --> %x\n",i,buf[i]);
+}
+
 int sm_command(char side, char * type, char * data, char size) {
 	int res;
 
@@ -250,6 +256,8 @@ int sm_write(char side, char * type, char * data, char size) {
 }
 
 void llwrite(char * packet, int packet_size) {
+
+
 	while (ll.numPackets > 0) {
 		printf("A ENVIAR ------------ %s\n", packet);
 		if (ll.numPackets % 2)
@@ -262,16 +270,6 @@ void llwrite(char * packet, int packet_size) {
 	}
 }
 
-int llread(int fd, char *buf){
-	int res=0;
-	while(!res){
-		res = read(fd, buf, MAX_INFO);
-	}
-
-	buf[res] = 0;
-
-	printf("Received: %s:%d\n", buf, res);
-
-	//if(buf[res-1] == STOP_BYTE)
-	//STOP = TRUE;
+int llread(char *buf, int buf_size){
+	read_packet(buf, buf_size);
 }

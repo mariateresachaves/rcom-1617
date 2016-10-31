@@ -137,6 +137,24 @@ void start_control_packet(FILE * fileFD, char * fileName, int file_size) {
 	write(al.fd,start_cp,scp_size);
 }
 
+void data_packet(char * buf, int buf_size) {
+	int i;
+	char *packet = malloc(buf_size+4);
+
+	packet[0] = DATA;
+	packet[1] = ll.sequenceNumber;
+	ll.sequenceNumber = (ll.sequenceNumber + 1) % 256;
+	packet[2] = buf_size >> 8;
+	packet[3] = buf_size & 0x0F;
+
+
+	for (i = 0; i < buf_size; i++)
+		packet[i+4] = buf[i];
+
+	llwrite(packet, buf_size+4);
+	free(packet);
+}
+
 /**
  * @brief Sends all the fragments of the file.
  * @param buf - file content.
@@ -151,7 +169,7 @@ void send_all_dataPackets(char * buf, FILE * fileFD, char * fileName, int fileSi
 
 	start_control_packet(fileFD, fileName, fileSize+1);
 
-  /*while(i < str_size+1) {
+  while(i < str_size+1) {
 		int send_bytes = 0;
 		memset(aux, 0, MAX_INFO);
 
@@ -168,11 +186,11 @@ void send_all_dataPackets(char * buf, FILE * fileFD, char * fileName, int fileSi
 			aux[send_bytes] = 0;
 		}
 
-		//data_packet(aux, send_bytes);
+		data_packet(aux, send_bytes);
 		//sleep(1);
 		i+=MAX_INFO;
 		ll.numPackets++;
-	}*/
+	}
 
 	//end_control_packet(fileFD, fileName);
 }
@@ -185,9 +203,13 @@ void receive_packets(FILE *fileFD) {
 	int packet = 0;
 	int size;
 	char buf[MAX_SIZE];
+	//char buf_data[MAX_SIZE]
 
 	char * file_name = malloc(1);
 	char * file_size = malloc(1);
+	char * file = malloc(1);
+
+	int len = 0;
 
 	int i;
 
@@ -213,14 +235,29 @@ void receive_packets(FILE *fileFD) {
 							}
 						}
 						packet++;
+						//break;
 					}
 				} else {
 					continue;
 				}
+			case DATA_PACKET:
+				//memset(buf, 0, size);
+				size = llread(buf,sizeof(buf));
+				printf("--- SIZE: %d ---\n", size);
+				//for (i=0;i<size;i++)
+					//printf("--- CONTENT: %x ---\n", buf[i]);
+				if(size>0){
+					if (buf[0]==DATA){
+						printf("--- RECEIVING DATA PACKET ---\n");
+						file=realloc(file, ((buf[2] << 8) + buf[3] )+len+1);
+						memcpy(file+len, &buf[4], (buf[2] << 8) + buf[3] );
+						len += (buf[2] << 8) + buf[3];
+					}
+				}
 		}
 		break;
 	}
-
+	printf("--- RECEIVING PACKETS  ---\n");
 }
 
 /**
