@@ -137,6 +137,11 @@ void start_control_packet(FILE * fileFD, char * fileName, int file_size) {
 	free(start_cp);
 }
 
+/**
+ * @brief Sends a data packet.
+ * @param buf - data to send.
+ * @param buf_size - data size.
+ */
 void data_packet(char * buf, int buf_size) {
 	int i;
 	char *packet = malloc(buf_size+4);
@@ -153,6 +158,45 @@ void data_packet(char * buf, int buf_size) {
 
 	llwrite(packet, buf_size+4);
 	free(packet);
+}
+
+/**
+ * @brief Sends a end control packet.
+ * @param fileFD - file descriptor of the file.
+ * @param fileName - file name.
+ * @param file_size - file size.
+ */
+void end_control_packet(FILE * fileFD, char * fileName, int file_size) {
+	int fsize;
+
+	fseek(fileFD, 0, SEEK_END);
+	fsize = ftell(fileFD);
+
+	char * et = malloc(4);
+
+	// LITTLE ENDIAN
+	et[0] = fsize % 0x100;
+	et[1] = (fsize/0x100) % 0x100;
+	et[2] = (fsize/0x10000) % 0x100;
+	et[3] = fsize/0x1000000;
+
+	int l1 = strlen(et);
+	int l2 = strlen(fileName);
+	int ecp_size = l1+l2+5;
+
+	char * end_cp = malloc(ecp_size);
+
+	end_cp[0] = END;
+	end_cp[1] = 0x00;
+	end_cp[2] = l1;
+	memcpy(&end_cp[3], et, l1+1);
+	end_cp[3+l1] = 0x01;
+	end_cp[4+l1] = l2;
+	memcpy(&end_cp[5+l1], fileName, l2+1);
+
+	//llwrite(end_cp, scp_size);
+	write(al.fd, end_cp, ecp_size);
+	free(end_cp);
 }
 
 /**
@@ -173,16 +217,16 @@ void send_all_dataPackets(char * buf, FILE * fileFD, char * fileName, int fileSi
 		int send_bytes = 0;
 		memset(aux, 0, MAX_INFO);
 
-		if(MAX_INFO > strlen(buf)-i) {
-			memcpy(aux, buf + i, strlen(buf)-i);
-			send_bytes = strlen(buf)-i;
+		if(MAX_INFO > fileSize-i) {
+			memcpy(aux, buf + i, fileSize-i);
+			send_bytes = fileSize-i;
 			aux[send_bytes] = 0;
 			send_bytes++;
 		}
 
 		else {
-			memcpy(aux, buf + i, MAX_INFO);
-			send_bytes = MAX_INFO;
+			memcpy(aux, buf + i, fileSize);
+			send_bytes = fileSize;
 			aux[send_bytes] = 0;
 		}
 
@@ -192,7 +236,7 @@ void send_all_dataPackets(char * buf, FILE * fileFD, char * fileName, int fileSi
 		ll.numPackets++;
 	}
 
-	//end_control_packet(fileFD, fileName);
+	end_control_packet(fileFD, fileName, fileSize+1);
 }
 
 /**
@@ -270,6 +314,7 @@ void receive_packets(FILE *fileFD) {
 void main(int argc, char** argv) {
 	char fileName[MAX_SIZE];
 	char * buf = malloc(1);
+	char * buf_r = malloc(MAX_SIZE);
 	FILE * fileFD;
 	int fileSize = 0;
 
@@ -301,14 +346,19 @@ void main(int argc, char** argv) {
 		}
 
 		send_all_dataPackets(buf, fileFD, fileName, fileSize);
+		//write(al.fd, buf, fileSize);
 
 		printf("\n\tTransmitter ended successfully\n");
 
 	} else if(al.status == RECEIVER) {
 
+		int res=0;
+
 		print_receiver();
 
-		receive_packets(fileFD);
+		//receive_packets(fileFD);
+		while(!res)
+			res = read(al.fd, buf, fileSize);
 
 		printf("\tReceiver ended successfully\n");
 
