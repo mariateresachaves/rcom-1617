@@ -1,50 +1,23 @@
 #include "datalink.h"
 
-volatile int STOP = FALSE;
-char buf[MAX_SIZE];
-int times = 0, flag_timer = 0;
+int count_msg_dropped = 0;
+int duplicate_found = 0;
+int n_retransmissions = 0;
+int n_timeouts = 0;
 
-int SUCCESS_UA = 0;
+struct termios oldtio,newtio;
 
-char SET[5] = {FLAG, A, C_SET, A^C_SET, FLAG};
-char DISC[5] = {FLAG, A, C_DISC, 0, FLAG};
-char UA[5] = {FLAG, A, C_UA, 0, FLAG};
-char RR[5] = {FLAG, A, C_RR, 0, FLAG};
-char REJ[5] = {FLAG, A, C_REJ, 0, FLAG};
-char RR_ACK[5] = {FLAG, A, C_RR_ACK, 0, FLAG};
-char REJ_ACK[5] = {FLAG, A, C_REJ_ACK, 0, FLAG};
-char INFO_0[5] = {FLAG, A, C_INFO_0, 0, FLAG};
-char INFO_1[5] = {FLAG, A, C_INFO_1, 0, FLAG};
+int count = 0;
+int flagTimer = 0;
 
-void timer_handler() {
-	printf("<--- Alarm number %d --->\n", times);
-	times++;
-	flag_timer = 1;
+char * buf_duplicate_aux;
+int size_duplicate_aux=0;
+
+void alarm_handler() {
+	flagTimer = 1;
 }
 
-void printFlags(char * flags, char * type) {
-	int n = 0;
-	printf("%s: ", type);
-	while(n<5) {
-		printf("%x ", flags[n]);
-		n++;
-	}
-}
-
-int open_port(char * port) {
-
-	(void) signal(SIGALRM, timer_handler);
-
-	al.fd = open(port, O_RDWR | O_NOCTTY );
-	if (al.fd <0) {perror(port); exit(-1); }
-
-	if ( tcgetattr(al.fd,&oldtio) == -1) { /* save current port settings */
-		perror("tcgetattr");
-		exit(-1);
-	}
-
-	bzero(&newtio, sizeof(newtio));
-
+void def_c_cflag() {
 	if (BAUDRATE == 300)
 		newtio.c_cflag = B300 | CS8 | CLOCAL | CREAD;
 	else if (BAUDRATE == 1200)
@@ -65,356 +38,670 @@ int open_port(char * port) {
 		newtio.c_cflag = B115200 | CS8 | CLOCAL | CREAD;
 	else if (BAUDRATE == 230400)
 		newtio.c_cflag = B230400 | CS8 | CLOCAL | CREAD;
-
-	newtio.c_iflag = IGNPAR;
-	newtio.c_oflag = OPOST;
-
-	/* set input mode (non-canonical, no echo,...) */
-	newtio.c_lflag = 0;
-
-	newtio.c_cc[VTIME]    = 1;   /* inter-character timer unused */
-	newtio.c_cc[VMIN]     = 0;   /* blocking read until 5 chars received */
-
-	tcflush(al.fd, TCIFLUSH);
-
-	if ( tcsetattr(al.fd,TCSANOW,&newtio) == -1) {
-		perror("tcsetattr");
-		exit(-1);
-	}
-
-	return al.fd;
-
 }
 
-int llopen() {
+int open_port(char * port) {
+	int fd, c, res, i;
 
-	printf("\nOpening port... \n");
+	(void) signal(SIGALRM, alarm_handler);
 
-	al.fd = open_port(ll.port);
+  /*
+    Open serial port device for reading and writing and not as flagCling tty
+    because we don't want to get killed if linenoise sends CTRL-C.
+  */
+    fd = open(port, O_RDWR | O_NOCTTY );
+    if (fd <0) {perror(port); exit(-1); }
+    if ( tcgetattr(fd,&oldtio) == -1) { /* save current port settings */
+      perror("tcgetattr");
+      return -1;
+    }
+    bzero(&newtio, sizeof(newtio));
 
-  return al.fd;
+    def_c_cflag();
 
+    newtio.c_iflag = IGNPAR;
+    newtio.c_oflag = 0;
+    newtio.c_lflag = 0;
+    newtio.c_cc[VTIME]    = 1;   /* inter-character timer unused */
+    newtio.c_cc[VMIN]     = 0;   /* blocking read until 5 chars received */
+
+    tcflush(fd, TCIOFLUSH);
+
+    if (tcsetattr(fd,TCSANOW,&newtio) == -1) {
+      perror("tcsetattr");
+      return -1;
+    }
+
+    return fd;
 }
 
-int llclose() {
+int close_port(int fd) {
+	sleep(1);
+  tcsetattr(fd, TCSANOW, &oldtio);
 
-	printf("\nClosing port... \n");
+  if (close(fd) < 0)
+  	return -1;
 
-	if ( tcsetattr(al.fd,TCSANOW,&oldtio) == -1) {
-		perror("tcsetattr");
-		exit(-1);
-  }
-
-  close(al.fd);
-
+  return 0;
 }
 
-char * llread(int type) {
-
-	char aux[MAX_SIZE];
-
-	memset(aux, 0, MAX_SIZE);
-
-	while (STOP==FALSE) {       /* loop for input */
-		receive_message(aux);
-	}
-
-	//if(type == 1)
-		//llwrite(aux);
-
-	//stateMachine();
-
-	return aux;
-}
-
-int llwrite(char * buf, int buf_size) {
-
-	int res;
-
-	res = write(al.fd, buf, buf_size);
-
-	printf("RES: %d", res);
-
-	ll.sequenceNumber = (ll.sequenceNumber + 1) % 256;
-
-	return res;
-
-	/*int i=0, res;
-	char aux[MAX_SIZE];
-
-	// String size
-	int num = strlen(buf);
-
-	// Envia a mensagem de MAX_INFO em MAX_INFO bytes
-  while(i < num+1) {
-
-		int send_bytes = 0;
-
-		memset(aux, 0, MAX_INFO);
-
-		if(MAX_INFO > strlen(buf)-i) {
-			memcpy(aux, buf + i, strlen(buf)-i);
-			send_bytes = strlen(buf)-i;
-
-			aux[send_bytes] = 0;
-			send_bytes++;
-		}
-		else {
-			memcpy(aux, buf + i, MAX_INFO);
-			send_bytes = MAX_INFO;
-
-			aux[send_bytes] = 0;
-		}
-
-		res = send_message(aux, send_bytes);
-
-		printf("Sent: %s:%d\n", aux, send_bytes);
-
-		sleep(1);
-
-		i+=MAX_INFO;
-
-	}
-
-	return res;*/
-}
-
-void sendFlags(char * flagToSend, char * type) {
-	write(al.fd, flagToSend, 5);
-	printf("<--- A enviar Flag ");
-	printFlags(flagToSend, type);
-	printf(" --->\n");
-
-}
-
-int send_message(char * message, int send_bytes) {
-
-    int res=0;
-
-
-    /*printf("\nTrying to send SET.....\n\n");
-
-    sendFlags(SET, "SET");*/
-
-    //res = read(al.fd, buf, MAX_INFO);
-
-    //printFlags(buf, "UA");
-
-	//printf("\nIa enviar uma mensagem, mas não dá jeito agora.....\n\n");
-    res = write(al.fd, message, send_bytes);
-
-    return res;
-
-}
-
-void receive_message(char * aux) {
-
-    int res=0;
-		while(!res){
-			res = read(al.fd, buf, MAX_INFO);
-		}
-
-		buf[res] = 0;
-
-    printf("Received: %s:%d\n", buf, res);
-
-    if(buf[res-1] == STOP_BYTE)
-		STOP = TRUE;
-
-    strcat(aux, buf);
-}
-
-int bcc_generator(char * buf, int size){
+int validate_bcc(char * buf, int size) {
+	char bcc=0x00;
 	int i=4;
 
-	//bcc1
-	buf[3] = buf[1] ^ buf[2];
+	bcc = buf[2] ^ buf[3];
 
-	//bcc2
-	if (size > 4){
-		buf[size-1] = 0;
-		while (i<size-1){
-			buf[size-1] ^= buf[i];
-			i++;
-		}
+	if(bcc != 0x00)
 		return 0;
+
+	while(i < size)
+		bcc^=buf[i++];
+
+	if(bcc != 0x00)
+		return 1;
+
+	return 2;
+}
+
+char generate_bcc(char * buf, int size){
+ 	int i=4;
+ 	buf[3]=0x00;
+
+	buf[3]^=buf[2];
+
+	if (size > 4) {
+		buf[size-1] = 0x00;
+
+    while(i < size-1)
+    	buf[size-1] ^= buf[i++];
+
+    return 0;
 	}
 
 	return buf[3];
 }
 
-int BCC_check(char *buff, int buf_size){
-	char bcc=0x00;
+void stuffing(char * buf, int * size){
 	int i=1;
 
-	// BCC1
-	while(i<4)
-		bcc^=buff[i++];
-
-	if(bcc!=0x00) return -1; // fail BCC1
-
-	bcc = 0x00;
-
-	// BCC2
-	while(i<buf_size)
-		bcc^=buff[i++];
-
-	if(bcc!=0x00) return -2; // fail BCC2
-
-	return 0; // Success
-}
-
-void stuffing(char * buf, int * buf_size) {
-
-	int i = 1;
-
-	while(i < (*buf_size)) {
-
-		if (buf[i] == FLAG) {
-			memmove(&buf[i+2], &buf[i+1], (*buf_size)+1-i);
-			buf[i] = 0x7D;
-			buf[i+1] = 0x5E;
-			(*buf_size)++;
-		}
-
-		else if  (buf[i] == FLAG_ESC) {
-			memmove(&buf[i+2], &buf[i+1], (*buf_size)+1-i);
-			buf[i] = 0x7D;
-			buf[i+1] = 0x5D;
-			(*buf_size)++;
-		}
-
-		i++;
-	}
-
-}
-
-void destuffing(char * buf, int * buf_size) {
-
-	int i = 1;
-
-	while(i < (*buf_size)) {
-
-		if (buf[i] == 0x7D && buf[i+1] == 0x5E) {
-			memmove(&buf[i], &buf[i+1], (*buf_size)+1-i);
-			buf[i] = FLAG;
-			(*buf_size)--;
-		}
-
-		else if (buf[i] == 0x7D && buf[i+1] == 0x5D) {
-			memmove(&buf[i], &buf[i+1], (*buf_size)+1-i);
+	while (i < (*size)) {
+		if (buf[i] == FLAG){
+			memmove(&buf[i+2], &buf[i+1], (*size)-(i-1));
 			buf[i] = FLAG_ESC;
-			(*buf_size);
+			buf[i+1]=0x5E;
+			(*size)++;
 		}
 
+		else if (buf[i] == FLAG_ESC) {
+			memmove(&buf[i+2], &buf[i+1], (*size)-(i-1));
+			buf[i] = FLAG_ESC;
+			buf[i+1] = 0x5D;
+			(*size)++;
+		}
 		i++;
 	}
-
 }
 
-int stateMachine() {
+void destuffing(char * buf, int * size){
+	int i=1;
 
-	int res=0;
-	int currentState = 0;
+	while (i < (*size)) {
+		if (buf[i] == FLAG_ESC && buf[i+1] == 0x5D) {
+			memmove(&buf[i], &buf[i+1], (*size)-(i-1));
+			buf[i] = FLAG_ESC;
+			(*size)--;
+		}
 
-	while (1){
+		else if(buf[i] == FLAG_ESC && buf[i+1] == 0x5E){
+			memmove(&buf[i], &buf[i+1], (*size)-(i-1));
+			buf[i] = FLAG;
+			(*size)--;
+		}
+		i++;
+	}
+}
 
-	while(!res) {
-		res = read(al.fd, buf, MAX_INFO);
+int send_back(int fd, char type, char flagA, char * data, int size){
+	char buf[MAX_FRAME_SIZE];
+	int size_i=size;
+	int i=4;
+
+	buf[0] = FLAG;
+	buf[1] = flagA;
+	buf[2] = type;
+
+	if (size > 4) {
+	    while (i < size_i-1) {
+			  buf[i] = data[i-4];
+				i++;
+	    }
 	}
 
-	switch (currentState) {
-		case 0: // FLAG
-			if (buf[currentState] != FLAG) {
+	buf[size] = FLAG;
 
-				printf("[ERRO] Não recebi flag FLAG correta!\n");
+	generate_bcc(buf, size_i);
+	stuffing(buf, &size_i);
+
+	return write(fd, buf, size_i+1);
+}
+
+int check_duplicate(char * buf, int size) {
+	int i=0, check=0;
+
+	if (size == size_duplicate_aux) {
+		check=1;
+
+		while(i <= size) {
+			if (buf_duplicate_aux[i] != buf[i]) {
+				check=0;
 				break;
-			} else
-				currentState++;
-		case 1: // A
-			if (buf[currentState] != A){
-				printf("[ERRO] Não recebi flag A correta!\n");
-				break;
-			} else
-				currentState++;
-		case 2: // CONTROLO
-			switch (buf[currentState]) {
-				case C_INFO_0:
-					//destuff de pacote de dados
-					//processar pacote de dados
-					//enviar receiver ready (RR)
-					break;
-				case C_INFO_1:
-					//destuff de pacote de dados
-					//processar pacote de dados
-					//enviar receiver ready (RR_ACK)
-					break;
+			}
+
+			i++;
+		}
+	}
+
+	if (check) {
+		return 1;
+	}
+
+	else {
+		size_duplicate_aux = size;
+		buf_duplicate_aux = (char*) realloc (buf_duplicate_aux, (size+1) * sizeof(char));
+
+		while(i <= size)
+			buf_duplicate_aux[i] = buf[i++];
+
+		return 0;
+	}
+}
+
+int get_message(int fd, char * type, char * flagA, char * flagC, char * data, int mode){
+	int size=0;
+	char buf[MAX_FRAME_SIZE];
+	int res = 0, bcc;
+	int state=0;
+
+	while (1) {
+		if (state == FLAG_INICIAL) {
+			if (flagTimer == 1) {
+				alarm(0);	//turn off alarm
+				return 0;
+			}
+
+			if (!read(fd,&buf[size],1)) {
+				continue;
+			}
+
+			if(buf[size] == FLAG )
+				state++;
+		}
+		else if (state == FLAG_FINAL) {
+			if (!read(fd, &buf[++size], 1)) {
+				size--;
+				continue;
+			}
+
+			if (buf[size] == FLAG && size < 4) { //protection for packets who start with 2 falgs
+					size=0;
+					continue;
+			}
+
+			else if (buf[size] == FLAG) {
+				if ((buf[2] == C_INFO_0 || buf[2] == C_INFO_1) && size < 7) // check if frame is type info
+					continue;
+
+				destuffing(buf, &size);
+				state++;
+			}
+		}
+
+		else if (state == BCC_DECODE) {
+			res=validate_bcc( buf, size);
+
+			if (res == NO_ERROR)
+				state++;
+
+			else if (res == BCC1_FAIL) {
+				state=0;
+				size=0;
+				count_msg_dropped++;
+				printf("[ERROR] 1 MSG DROPPED [BCC1 CHECK=FAIL]\n");
+				fflush(stdout);
+			}
+
+			else if (res == BCC2_FAIL) {
+				state=0;
+				size=0;
+				count_msg_dropped++;
+
+				if(buf[2] == C_INFO_0) {
+					printf("[ERROR] Received MSG type [I] CTRL=[0x%02x] BCC2_CHECK=[FAIL] ", buf[2]);
+
+					if (send_back(fd, C_REJ_ACK, A_TRANSMITTER, NULL, 4) <= 0) {
+						printf("[WARNING] REJ2_SEND_BACK=[FAIL]\n");
+						fflush(stdout);
+					}
+
+					else
+						printf("REJ2_SEND_BACK=[OK]\n");
+				}
+
+				else if (buf[2] == C_INFO_1) {
+					printf("[ERROR] Received MSG type [I] CTRL=[0x%02x] BCC2_CHECK=[FAIL] ", buf[2]);
+
+					if (send_back(fd, C_REJ, A_TRANSMITTER, NULL, 4) <= 0) {
+						printf("[WARNING] REJ1_SEND_BACK=[FAIL]\n");
+						fflush(stdout);
+					}
+
+					else
+						printf("REJ1_SEND_BACK=[OK]\n");
+				}
+			}
+		}
+
+		else if (state == SEND_UA_BACK) {
+			switch ((unsigned char) buf[2]) {
 				case C_SET:
-					printf("<--- Recebi um SET --->\n");
-					//envia UA
-					sendFlags(UA,"UA");
+					strcpy(type, "SET");
+					*flagA=buf[1];
+					*flagC=buf[2];
+					CONNECTION=1;
+
+					if(mode == RECEIVER) {
+						if (send_back(fd, C_UA, A_TRANSMITTER, NULL, 4)  <=0)
+							printf("[WARNING] [UA_SENT_BACK=FAIL] \n");
+					}
 					break;
 				case C_DISC:
-					//verifica se é recetor ou emissor
-					//se for recetor, envia novo DISC
-					//se for emissor, envia UA
+					if(mode==RECEIVER){
+						if (send_back(fd, C_DISC, A_TRANSMITTER, NULL, 4) <=0)
+							printf("[WARNING] [DISC_SENT_BACK=FAIL] \n");
+
+						while (count < NUMTRANSMISSIONS) {
+							alarm(TIMEOUT);	//turn on alarm
+
+							res = get_message(fd, type, flagA, flagC, data, TRANSMITTER);
+							flagTimer=0;
+
+							alarm(0); 			//turn off alarm
+
+							if (res > 0) {
+								if (strcmp(type, "UA") == 0)
+									break;
+							}
+
+							count++;
+							printf("[WARNING] [DISC_BACK = DIDN'T RECEIVED] Attempt number: %d\n", count);
+						}
+
+						if (count == NUMTRANSMISSIONS)
+							printf("[ERROR] CANNOT GET UA BACK FROM DISC!!!!!!!!!! HELP ME PLEAAAASE\n just kidding, I'm fine, I will close the connection\n");
+					}
+
+					CONNECTION=0;
+					count=0;
+
+					strcpy(type, "DISC");
+					*flagA=buf[1];
+					*flagC=buf[2];
+
 					break;
 				case C_UA:
-					printf("<--- Recebi um UA --->\n");
-					//verifica se é recetor ou emissor
-					if (al.status == TRANSMITTER) {
-						//se for emissor, envia INFO_0
-						//printf("------A enviar INFO_0----------\n");
-						sendFlags(INFO_0,"INFO_0");
-					} else  if (al.status == RECEIVER) {
-						//se for recetor, termina leitura
-						printf("------A terminar leitura----------\n");
+					strcpy(type, "UA");
+					*flagA=buf[1];
+					*flagC=buf[2];
+
+					break;
+				case C_INFO_0:
+					strcpy(type, "C_INFO_0");
+					*flagA=buf[1];
+					*flagC=buf[2];
+					memcpy(data, buf+4, size-5);
+
+					if (mode == RECEIVER) {
+						if (send_back(fd, C_RR_ACK, A_TRANSMITTER, NULL, 4) <= 0)
+							printf("[WARNING] [RR1_SENT_BACK=FAIL] \n");
 					}
 
 					break;
-				case C_RR:
-					//enviar trama com informação (INFO_1)
-					break;
-				case C_RR_ACK:
-					//verifica se existem mais tramas
-					//caso exista, repete ciclo
-					//caso não exista, envia disconnect (DISC)
-					break;
-				case C_REJ:
-					break;
-				case C_REJ_ACK:
-					break;
-				default:
-					printf("[ERRO] Flag do campo de controlo desconhecida - %x\n",	buf[currentState]);
-					return NULL;
-			}
-			currentState++;
-		case 3: // BCC
-			bcc_generator(buf,res);
-			switch (buf[currentState]) {
-				case A ^ C_UA:
-					break;
-				case A ^ C_SET:
+				case C_INFO_1:
+					strcpy(type, "I2");
+					*flagA=buf[1];
+					*flagC=buf[2];
+					memcpy(data, buf+4, size-5);
+
+					if (mode == RECEIVER) {
+						if (send_back(fd, C_RR, A_TRANSMITTER, NULL, 4) <=0)
+							printf("[WARNING] [RR1_SENT_BACK=FAIL] \n");
+					}
+
 					break;
 				default:
-					if (buf[currentState-1] == C_INFO_0)
-						printf("Encher chouriços");
-						//enviar C_REJ
-					else if (buf[currentState-1] == C_INFO_1)
-						printf("Encher chouriços");
-						//enviar C_REJ_ACK
-					printf("[ERRO] Flag BCC errada!");
-					return NULL;
+					strcpy(type, "UNKOWN");
+					*flagA=buf[1];
+					*flagC=buf[2];
+
+					if(mode == RECEIVER) {
+						if ((send_back(fd, C_UA, A_TRANSMITTER, NULL, 4))  <=0)
+							printf("[WARNING] [UA_SENT_BACK=FAIL] \n");
+					}
+
+					break;
 			}
-			currentState++;
-		case 4:
-			if (buf[currentState != FLAG]) {
-				printf("[ERRO] Não recebi flag final FLAG correta!\n");
+			//send unnumbered acknowledgment
+			if (mode == RECEIVER) {
+				if (check_duplicate(buf, size)) {
+					printf("[WARNING] DUPLICATE FOUND! [TYPE=%s]\n", type);
+
+					duplicate_found++;
+					size=0;
+					state = FLAG_INICIAL;
+				}
+
+				else
+					state=4;
+			}
+
+			else
+				state=4;
+		}
+
+		else if (state == 4)
+			break;
+	}
+
+	return size+1;
+ }
+
+int write_message(int fd, char * type, char flagA, char flagC, char * data, int size) {
+	int res = 0, bcc;
+	int state=0;
+	char type_2[10]={0}, flagA_2=0, flagC_2=0;
+	char * data_2 = malloc(sizeof(char));
+	int count=0;
+
+	int terminateStateMachineFlag = 0;
+
+	while (1) {
+		switch (state) {
+			case 0:
+				switch ((int) (flagC)) {
+					case C_SET:
+						if (send_back(fd, C_SET, A_TRANSMITTER, NULL, 4) <=0 )
+							return -1;
+						state=1;
+						continue;
+					case C_DISC:
+						if (send_back(fd, C_DISC, A_TRANSMITTER, NULL, 4) <= 0)
+							return -1;
+						state=2;
+						continue;
+					case C_INFO_0:
+						if (send_back(fd, C_INFO_0, A_TRANSMITTER, data, size+5) <= 0)
+							return -1;
+						state=3;
+						continue;
+					case C_INFO_1:
+						if (send_back(fd, C_INFO_1, A_TRANSMITTER, data, size+5) <= 0)
+							return -1;
+						state=3;
+						continue;
+				}
 				break;
-			} else
-				//TODO
-				//enviar dados se trama de informação
+			case 1:
+				flagTimer=0;
+				alarm(TIMEOUT);	//turn on alarm
+
+				get_message(fd, type_2, &flagA_2,  &flagC_2, data_2, TRANSMITTER);
+
+				flagTimer=0;	//turn off alarm
+				alarm(0);
+
+				if (!strcmp(type_2, "UA"))
+					state=4;
+
+				else if (count < NUMTRANSMISSIONS) {
+					printf("Failed to receive UA. Try = %d\n", count+1);
+					state=0;
+					n_timeouts++;
+					n_retransmissions++;
+					count++;
+					continue;
+				}
+
+				else {
+					printf("Failed to receive UA.\n");
+					state=4;
+					return -1;
+				}
+				break;
+			case 2:
+				flagTimer=0;
+				alarm(TIMEOUT);	//turn on alarm
+
+				res = get_message(fd, type_2, &flagA_2,  &flagC_2, NULL, TRANSMITTER);
+
+				flagTimer=0;	//turn off alarm
+				alarm(0);
+
+				if (res && !strcmp(type_2, "DISC")) {
+					send_back(fd, C_UA, A_RECEIVER, NULL, 4);
+					state=4;
+				}
+
+				else if (count < NUMTRANSMISSIONS) {
+					printf("Failed to receive DISC. Try = %d\n", count+1);
+					state=0;
+					n_timeouts++;
+					n_retransmissions++;
+					count++;
+					continue;
+				}
+
+				else {
+					printf("Failed to receive DISC.\n");
+					state=4;
+					return -1;
+				}
+				break;
+			case 3:
+				flagTimer=0;
+				alarm(TIMEOUT);	//turn on alarm
+
+				res = get_message(fd, type_2, &flagA_2,  &flagC_2, NULL, TRANSMITTER);
+
+				flagTimer=0;	//turn off alarm
+				alarm(0);
+
+			if (res > 0) {
+				  switch ((unsigned char) (flagC_2)) {
+						case C_RR:
+							if (flagC == C_INFO_1)
+							  state = 4;
+
+							else if (count < NUMTRANSMISSIONS) {
+								printf("Failed to receive INFO_1. Try = %d\n", count+1);
+								state = 0;
+								n_timeouts++;
+								n_retransmissions++;
+								count++;
+							}
+
+							else {
+							  	printf("Failed to receive INFO_1.\n");
+							  	state = 4;
+							  	return -1;
+							}
+						  break;
+						case C_RR_ACK:
+							if (flagC == C_INFO_0)
+								state = 4;
+
+							else if (count < NUMTRANSMISSIONS) {
+								printf("Failed to receive INFO_0. Try = %d\n", count+1);
+								state = 0;
+								count++;
+								n_timeouts++;
+								n_retransmissions++;
+							}
+
+							else {
+							  	printf("Failed to receive INFO_0.\n");
+							  	state = 4;
+							  	return -1;
+							}
+						  break;
+						case C_REJ:
+						case C_REJ_ACK:
+							if (count < NUMTRANSMISSIONS) {
+								printf("Failed. Received REJ. Try = %d\n", count+1);
+								state = 0;
+								n_retransmissions++;
+								count++;
+							}
+
+							else {
+								  printf("Failed. Received REJ.\n");
+								  state = 4;
+								  return -1;
+							}
+						  break;
+					}
+				}
+
+				else {
+					if (count < NUMTRANSMISSIONS) {
+						printf("Failed. INFO not received. Try = %d\n", count+1);
+						state = 0;
+						n_timeouts++;
+						n_retransmissions++;
+						count++;
+					}
+
+					else {
+						printf("Failed. INFO not received.\n");
+						n_timeouts++;
+						state = 4;
+						return -1;
+					}
+				}
+				break;
+			case 4:
+				if (flagC == C_INFO_0 || flagC == C_INFO_1 )
+					return size;
+
+				terminateStateMachineFlag = 1;
+
 				break;
 		}
+
+		if (terminateStateMachineFlag)
+			break;
 	}
+
+	return 1;
+}
+
+
+int llopen(char * port){
+	int fd;
+	char type[10], flagA, flagC;
+
+	fd = open_port(port);
+
+	if (fd == -1)
+		return -1;
+
+	if (STATUS == 1) {
+		if (write_message(fd, "SET", A_TRANSMITTER, C_SET, NULL, TRANSMITTER)) {
+			printf("Behold! The port has opened! Creatures will come forth!\n");
+			return fd;
+		}
+
+		else
+			return -1;
+	}
+
+	else {
+		if (get_message(fd, type, &flagA, &flagC, NULL, RECEIVER) != -1) {
+			if (flagC == C_SET) {
+				printf("Behold! The port has opened! Creatures will come forth!\n");
+				return fd;
+			}
+
+			else
+				return -1;
+		}
+
+		else
+			return -1;
+	}
+}
+
+int llwrite(int fd, char * buffer, int size) {
+	int res=0;
+	char type[10], flagA, flagC, *data;
+
+	res = write_message(fd, type, A_TRANSMITTER, NUMPACKETS%2 ? C_INFO_1 : C_INFO_0, buffer, size);
+
+	if(res>0) {
+		NUMPACKETS++;
+		return res;
+	}
+
+	else
+		return -1;
+}
+
+int llread(int fd, char * buf) {
+	char type[10], flagC=2, flagA;
+	int nrecebidas;
+
+	while (flagC != C_INFO_0 && flagC != C_INFO_1) {
+		if ((nrecebidas = get_message(fd, type, &flagA, &flagC, buf, RECEIVER))) {
+			NUMPACKETS++;
+
+			if (flagC==C_DISC)
+				return -2;
+
+			if (flagC==C_SET)
+				continue;
+
+			return nrecebidas-6;
+		}
+
+		else
+			return -1;
+	}
+}
+
+int llclose(int fd) {
+	char type[10], flagA, flagC;
+
+	if (STATUS == 1) {
+		if (write_message(fd, "DISC", A_TRANSMITTER, C_DISC, NULL, TRANSMITTER))
+			printf("The port is closing! Quick! Run for your life!\n");
+
+		else
+			return -1;
+	}
+
+	else {
+		if (get_message(fd, type, &flagA, &flagC, NULL, RECEIVER)) {
+			if (!strcmp(type, "DISC"))
+				printf("The port is closing! Quick! Run for your life!\n");
+
+			else
+				return -1;
+		}
+
+		else
+			return -1;
+	}
+
+	close_port(fd);
+
+	return 1;
 }
