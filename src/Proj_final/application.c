@@ -226,6 +226,7 @@ int sm_receiver(int fd){
 				printf("\nThe file %s was successfully stored at ./files/%s \n", file_name, file_name);
 
 				statistics();
+
 				return 0;
 			}
 		}
@@ -250,7 +251,11 @@ int send_all_packets(int fd, char * fileName, int fileSize, char * buf){
 
 		else
 			break;
-
+		
+		printf("\rSending file... ");
+		fflush(stdout);
+		printf("[%.0f%%]", (((float)i)/(float)(fileSize))*1000);
+		fflush(stdout);
 	}
 
 	end_control_packet(fd, fileName, fileSize);
@@ -301,6 +306,8 @@ int main(int argc, char** argv)
 		send_all_packets(fd, fileName, fileSize, buf);
 
 		printf("File successfully delivered!\n");
+
+		statistics();
 
 		llclose(fd);
 	}

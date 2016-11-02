@@ -552,7 +552,6 @@ int write_message(int fd, char * type, char flagA, char flagC, char * data, int 
 							}
 						  break;
 						case C_REJ:
-						case C_REJ_ACK:
 							if (count < NUMTRANSMISSIONS) {
 								printf("Failed. Received REJ. Try = %d\n", count+1);
 								state = 0;
@@ -562,6 +561,20 @@ int write_message(int fd, char * type, char flagA, char flagC, char * data, int 
 
 							else {
 								  printf("Failed. Received REJ.\n");
+								  state = 4;
+								  return -1;
+							}
+						  break;
+						case C_REJ_ACK:
+							if (count < NUMTRANSMISSIONS) {
+								printf("Failed. Received REJ_ACK. Try = %d\n", count+1);
+								state = 0;
+								n_retransmissions++;
+								count++;
+							}
+
+							else {
+								  printf("Failed. Received REJ_ACK.\n");
 								  state = 4;
 								  return -1;
 							}
