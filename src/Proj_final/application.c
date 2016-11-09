@@ -1,5 +1,12 @@
+/*! \file */
+
 #include "datalink.h"
 
+/**
+ * @brief Function to verify the user-inserted arguments.
+ * @param argc - number of arguments inserted.
+ * @param argv - arguments inserted.
+ */
 void check_args(int argc, char ** argv) {
 	if ( (argc < 3) || ((strcmp("/dev/ttyS0", argv[1])!=0) &&
   	                  (strcmp("/dev/ttyS1", argv[1])!=0) )) {
@@ -87,17 +94,24 @@ void ask_parameters() {
 
 }
 
-int start_control_packet(int fd, char* fileName, int fileSize) {
+/**
+ * @brief Função que  cria e escreve o pacote de controlo START.
+ * @param fd - descritor da porta.
+ * @param fileName - nome do ficheiro.
+ * @param fileSize - tamanho do ficheiro.
+ */
+void start_control_packet(int fd, char* fileName, int fileSize) {
+	int l1, l2, scp_size;
+	char * fileSS, * start_cp;
 
-
-	char * fileSS = malloc((int) (fileSize/256)+1);
+	fileSS = malloc((int) (fileSize/256)+1);
 	sprintf(fileSS, "%d", fileSize);
 
-	int l1 = strlen(fileSS);
-	int l2 = strlen(fileName);
-	int scp_size = l1 + l2 + 5;
+	l1 = strlen(fileSS);
+	l2 = strlen(fileName);
+	scp_size = l1 + l2 + 5;
 
-	char* start_cp = malloc(40);
+	start_cp = malloc(40);
 
 	start_cp[0] = START;
 	start_cp[1] = 0x00;
@@ -108,12 +122,15 @@ int start_control_packet(int fd, char* fileName, int fileSize) {
 	strcpy(&start_cp[5 + l1], fileName);
 
 	llwrite(fd, start_cp, l1 + l2 + 5);
-
-	return 0;
 }
 
-void data_packet(int fd, char* buf, int bufSize){
-
+/**
+ * @brief Função que envia um pacote de dados.
+ * @param fd - descritor da porta.
+ * @param buf - dados a enviar.
+ * @param bufSize - tamanho dos dados a enviar.
+ */
+void data_packet(int fd, char* buf, int bufSize) {
 	int i = 0;
 	char *packet = malloc(4+bufSize);
 
@@ -131,16 +148,24 @@ void data_packet(int fd, char* buf, int bufSize){
 	free(packet);
 }
 
-int end_control_packet(int fd, char* fileName, int fileSize) {
+/**
+ * @brief Função que  cria e escreve o pacote de controlo END.
+ * @param fd - descritor da porta.
+ * @param fileName - nome do ficheiro.
+ * @param fileSize - tamanho do ficheiro.
+ */
+void end_control_packet(int fd, char * fileName, int fileSize) {
+	int l1, l2, scp_size;
+	char * fileSS, * end_cp;
 
-	char * fileSS = malloc((int) (fileSize/256)+1);
+	fileSS = malloc((int) (fileSize/256)+1);
 	sprintf(fileSS, "%d", fileSize);
 
-	int l1 = strlen(fileSS);
-	int l2 = strlen(fileName);
-	int scp_size = l1 + l2 + 5;
+	l1 = strlen(fileSS);
+	l2 = strlen(fileName);
+	scp_size = l1 + l2 + 5;
 
-	char* end_cp = malloc(40);
+	end_cp = malloc(40);
 
 	end_cp[0] = END;
 	end_cp[1] = 0x00;
@@ -151,20 +176,21 @@ int end_control_packet(int fd, char* fileName, int fileSize) {
 	strcpy(&end_cp[5 + l1], fileName);
 
 	llwrite(fd, end_cp, l1 + l2 + 5);
-
-	return 1;
 }
 
-int sm_receiver(int fd){
-		int res, i;
-		int file_len = 0;
-		int state = 0;
+/**
+ * Máquina de estados para receber pacotes.
+ * @param fd - descritor da porta.
+ */
+void sm_receiver(int fd){
+		int res, i, file_len=0, state=0, j=0;
+
 		char * file_name = malloc(1);
 		char * file_size = malloc(1);
 		char * file = malloc(1);
+
 		char store_name[MAX_SIZE];
 		char packet[MAX_FRAME_SIZE];
-		int j = 0;
 
 		while (1) {
 			if (state == START_PACKET) {
@@ -172,12 +198,13 @@ int sm_receiver(int fd){
 
 				if (res>0 && packet[0] == START) {
 					for (i=1; i<res; i += (packet[i+1]+2)) {
-						if (packet[i] == 0) { //file size
+						//file size
+						if (packet[i] == 0) {
 							file_size=realloc(file_size, packet[i+1]+1);
 							memcpy(file_size, &packet[i+2], packet[i+1]);
 						}
-
-						else if (packet[i] == 1) { //file name
+						//file name
+						else if (packet[i] == 1) {
 							file_name=realloc(file_name, packet[i+1]+1);
 							memcpy(file_name, &packet[i+2], packet[i+1]);
 						}
@@ -215,7 +242,7 @@ int sm_receiver(int fd){
 				struct stat st = {0};
 
 				if (stat("files", &st) == -1) {
-				    mkdir("files", 0700);
+				    mkdir("files", 0777);
 				}
 
 				sprintf(store_name, "files/%s", file_name);
@@ -227,12 +254,19 @@ int sm_receiver(int fd){
 
 				statistics();
 
-				return 0;
+				return;
 			}
 		}
 }
 
-int send_all_packets(int fd, char * fileName, int fileSize, char * buf){
+/**
+ * Função para enviar o ficheiro, dividindo-o em vários pacotes.
+ * @param fd - descritor da porta.
+ * @param fileName - nome do ficheiro.
+ * @param fileSize - tamanho do ficheiro.
+ * @param fileContent - conteúdo do ficheiro.
+ */
+void send_all_packets(int fd, char * fileName, int fileSize, char * fileContent) {
 	int i = 0;
 
 	start_control_packet(fd, fileName, fileSize+1);
@@ -240,12 +274,12 @@ int send_all_packets(int fd, char * fileName, int fileSize, char * buf){
 	while (1) {
 		if ((fileSize - MAXINFO*i) > MAXINFO) {
 			i++;
-			data_packet(fd, buf, MAXINFO);
-			memmove(&buf[0], &buf[MAXINFO], fileSize - MAXINFO*i);
+			data_packet(fd, fileContent, MAXINFO);
+			memmove(&fileContent[0], &fileContent[MAXINFO], fileSize - MAXINFO*i);
 		}
 
 		else if ((fileSize - MAXINFO*i) > 0) {
-			data_packet(fd, buf, fileSize - MAXINFO*i);
+			data_packet(fd, fileContent, fileSize - MAXINFO*i);
 			break;
 		}
 
@@ -314,3 +348,4 @@ int main(int argc, char** argv)
 
 	print_footer();
 }
+

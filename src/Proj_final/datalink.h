@@ -1,3 +1,5 @@
+/*! \file */
+
 #ifndef TEST_H_INCLUDED
 #define TEST_H_INCLUDED
 
@@ -39,10 +41,138 @@ int duplicate_found;
 int n_retransmissions;
 int n_timeouts;
 
-int llopen(char * porta);
-int llwrite(int fd, char *buffer, int length);
-int llread(int fd, char *buffer);
+/**
+ * @brief Função para instalar a rotina do timer.
+ */
+void alarm_handler();
+
+/**
+ * @brief Função para definir o newtio.c_cflag dependendo do baudrate.
+ */
+void def_c_cflag();
+
+/**
+ * @brief Função para abrir a porta de série.
+ * @param port - nome da porta.
+ * @return Retorna o descritor da porta.
+ */
+int open_port(char * port);
+
+/**
+ * @brief Função para fechar a porta de série.
+ * @param fd - descritor da porta.
+ * @return Retorn 0 sem caso de sucesso e -1 caso contrário.
+ */
+int close_port(int fd);
+
+/**
+ * @brief Função para verificar se o bcc1 e o bcc2 estão corretos.
+ * @param buf - pacote a verificar.
+ * @param size - tamanho do pacote.
+ * @return Retorna 0 caso o bcc1 esteja errado, 1 caso o bcc2 esteja errado e 2 caso o bcc1 e o bcc2 estejam corretos.
+ */
+int validate_bcc(char * buf, int size);
+
+/**
+ * @brief Função para gerar o bcc para um pacote.
+ * @param buf - pacote para o qual vai ser gerado um bcc.
+ * @param size - tamanho do pacote.
+ * @return Retorna 0 caso seja uma trama de informação e retorna o campo de controlo caso contrário.
+ */
+char generate_bcc(char * buf, int size);
+
+/**
+ * @brief Função para aplicar a técnica de stuffing.
+ * @param buf - pacote.
+ * @param size - tamanho do pacote.
+ */
+void stuffing(char * buf, int * size);
+
+/**
+ * @brief Função para fazer a operação inversa da técnica de stuffing.
+ * @param buf - pacote.
+ * @param size - tamanho do pacote.
+ */
+void destuffing(char * buf, int * size);
+
+/**
+ * @brief Função para enviar uma trama.
+ * @param fd - descritor da porta.
+ * @param type - campo de controlo.
+ * @param address - campo de endereço.
+ * @param data - dados da trama.
+ * @param size - tamanho da trama.
+ * @return Retorna o número de bytes lidos em caso de sucesso e -1 caso contrário.
+ */
+int send_flags(int fd, char type, char address, char * data, int size);
+
+/**
+ * @brief Função para verificar se uma trama é duplicada.
+ * @param buf - trama.
+ * @param size - tamanho da trama.
+ * @return Retorna 0 em caso de sucesso e 1 caso contrário.
+ */
+int check_duplicate(char * buf, int size);
+
+/**
+ * @brief Função que recebe dados.
+ * @param fd - descritor da porta.
+ * @param type - nome do tipo do campo de controlo.
+ * @param address - campo de endereço.
+ * @param control - campo de controlo.
+ * @param data - onde será guarda a informação lida.
+ * @param mode - indica se é um emissor ou um recetor.
+ * @return Retorna o tamanho dos dados recebidos e 0 em casso de erro.
+ */
+int get_message(int fd, char * type, char * address, char * control, char * data, int mode);
+
+/**
+ * @brief Função que escreve dados.
+ * @param fd - descritor da porta.
+ * @param type - nome do tipo do campo de controlo.
+ * @param address - campo de endereço.
+ * @param control - campo de controlo.
+ * @param data - dados a enviar.
+ * @param size - tamanho dos dados.
+ * @return Retorna o tamanho dos dados caso envie uma trama de informação com sucesso, ou 1 caso envie uma outra trama com sucesso e -1 caso contrário.
+ */
+int write_message(int fd, char * type, char address, char control, char * data, int size);
+
+/**
+ * @brief Função que estabelece a comunicação entre o recetor e o emissor.
+ * @param port - porta a ser aberta para efetuar a comunicação.
+ * @return Retorna 0 em caso de sucesso e -1 caso contrário.
+ */
+int llopen(char * port);
+
+/**
+ * @brief Função que escreve um pacote.
+ * @param fd - descritor da porta
+ * @param buf - pacote a enviar.
+ * @param size - tamanho do pacote.
+ * @return Retorna o tamanho dos dados enviados em caso de sucesso e -1 caso contrário.
+ */
+int llwrite(int fd, char * buf, int size);
+
+/**
+ * @brief Função que lê um pacote.
+ * @param fd - descritor da porta.
+ * @param buf - onde será guardada a informação lida.
+ * @return Retorna -2 caso receba um disconnect, 0 em caso de sucesso e -1 caso contrário.
+ */
+int llread(int fd, char * buf);
+
+/**
+ * @brief Função que fecha a conexão entre o emissor e o recetor.
+ * @param fd - descritor da porta.
+ * @return Retorna 1 em caso de sucesso e -1 caso contrário.
+ */
 int llclose(int fd);
+
+/**
+ * @brief Função que imprime as estatísticas da transmissão do ficheiro.
+ */
 void statistics();
 
 #endif
+

@@ -53,6 +53,7 @@ int open_port(char * port) {
       perror("tcgetattr");
       return -1;
     }
+
     bzero(&newtio, sizeof(newtio));
 
     def_c_cflag();
@@ -101,7 +102,7 @@ int validate_bcc(char * buf, int size) {
 	return 2;
 }
 
-char generate_bcc(char * buf, int size){
+char generate_bcc(char * buf, int size) {
  	int i=4;
  	buf[3]=0x00;
 
@@ -110,16 +111,16 @@ char generate_bcc(char * buf, int size){
 	if (size > 4) {
 		buf[size-1] = 0x00;
 
-    while(i < size-1)
-    	buf[size-1] ^= buf[i++];
+		while(i < size-1)
+			buf[size-1] ^= buf[i++];
 
-    return 0;
+		return 0;
 	}
 
 	return buf[3];
 }
 
-void stuffing(char * buf, int * size){
+void stuffing(char * buf, int * size) {
 	int i=1;
 
 	while (i < (*size)) {
@@ -140,7 +141,7 @@ void stuffing(char * buf, int * size){
 	}
 }
 
-void destuffing(char * buf, int * size){
+void destuffing(char * buf, int * size) {
 	int i=1;
 
 	while (i < (*size)) {
@@ -159,13 +160,13 @@ void destuffing(char * buf, int * size){
 	}
 }
 
-int send_flags(int fd, char type, char flagA, char * data, int size){
+int send_flags(int fd, char type, char address, char * data, int size) {
 	char buf[MAX_FRAME_SIZE];
 	int size_i=size;
 	int i=4;
 
 	buf[0] = FLAG;
-	buf[1] = flagA;
+	buf[1] = address;
 	buf[2] = type;
 
 	if (size > 4) {
@@ -214,11 +215,9 @@ int check_duplicate(char * buf, int size) {
 	}
 }
 
-int get_message(int fd, char * type, char * flagA, char * flagC, char * data, int mode){
-	int size=0;
+int get_message(int fd, char * type, char * address, char * control, char * data, int mode) {
+	int size=0, res = 0, state=0, bcc;
 	char buf[MAX_FRAME_SIZE];
-	int res = 0, bcc;
-	int state=0;
 
 	while (1) {
 		if (state == FLAG_INICIAL) {
@@ -303,8 +302,8 @@ int get_message(int fd, char * type, char * flagA, char * flagC, char * data, in
 			switch ((unsigned char) buf[2]) {
 				case C_SET:
 					strcpy(type, "SET");
-					*flagA=buf[1];
-					*flagC=buf[2];
+					*address=buf[1];
+					*control=buf[2];
 					CONNECTION=1;
 
 					if(mode == RECEIVER) {
@@ -313,14 +312,14 @@ int get_message(int fd, char * type, char * flagA, char * flagC, char * data, in
 					}
 					break;
 				case C_DISC:
-					if(mode==RECEIVER){
+					if(mode == RECEIVER) {
 						if (send_flags(fd, C_DISC, A_TRANSMITTER, NULL, 4) <=0)
 							printf("Fail to send DISC.\n");
 
 						while (count < NUMTRANSMISSIONS) {
 							alarm(TIMEOUT);	//turn on alarm
 
-							res = get_message(fd, type, flagA, flagC, data, TRANSMITTER);
+							res = get_message(fd, type, address, control, data, TRANSMITTER);
 							flagTimer=0;
 
 							alarm(0); 			//turn off alarm
@@ -342,20 +341,20 @@ int get_message(int fd, char * type, char * flagA, char * flagC, char * data, in
 					count=0;
 
 					strcpy(type, "DISC");
-					*flagA=buf[1];
-					*flagC=buf[2];
+					*address=buf[1];
+					*control=buf[2];
 
 					break;
 				case C_UA:
 					strcpy(type, "UA");
-					*flagA=buf[1];
-					*flagC=buf[2];
+					*address=buf[1];
+					*control=buf[2];
 
 					break;
 				case C_INFO_0:
 					strcpy(type, "C_INFO_0");
-					*flagA=buf[1];
-					*flagC=buf[2];
+					*address=buf[1];
+					*control=buf[2];
 					memcpy(data, buf+4, size-5);
 
 					if (mode == RECEIVER) {
@@ -366,8 +365,8 @@ int get_message(int fd, char * type, char * flagA, char * flagC, char * data, in
 					break;
 				case C_INFO_1:
 					strcpy(type, "I2");
-					*flagA=buf[1];
-					*flagC=buf[2];
+					*address=buf[1];
+					*control=buf[2];
 					memcpy(data, buf+4, size-5);
 
 					if (mode == RECEIVER) {
@@ -378,8 +377,8 @@ int get_message(int fd, char * type, char * flagA, char * flagC, char * data, in
 					break;
 				default:
 					strcpy(type, "UNKOWN");
-					*flagA=buf[1];
-					*flagC=buf[2];
+					*address=buf[1];
+					*control=buf[2];
 
 					if(mode == RECEIVER) {
 						if ((send_flags(fd, C_UA, A_TRANSMITTER, NULL, 4))  <=0)
@@ -413,36 +412,32 @@ int get_message(int fd, char * type, char * flagA, char * flagC, char * data, in
 	return size+1;
  }
 
-int write_message(int fd, char * type, char flagA, char flagC, char * data, int size) {
-	int res = 0, bcc;
-	int state=0;
-	char type_2[10]={0}, flagA_2=0, flagC_2=0;
+int write_message(int fd, char * type, char address, char control, char * data, int size) {
+	int state=0, res = 0, count=0, terminateStateMachineFlag = 0, bcc;
+	char type_2[10]={0}, address_2=0, control_2=0;
 	char * data_2 = malloc(sizeof(char));
-	int count=0;
-
-	int terminateStateMachineFlag = 0;
 
 	while (1) {
 		switch (state) {
 			case 0:
-				switch ((int) (flagC)) {
+				switch ((int) (control)) {
 					case C_SET:
-						if (send_flags(fd, C_SET, A_TRANSMITTER, NULL, 4) <=0 )
+						if (send_flags(fd, C_SET, address, NULL, 4) <=0 )
 							return -1;
 						state=1;
 						continue;
 					case C_DISC:
-						if (send_flags(fd, C_DISC, A_TRANSMITTER, NULL, 4) <= 0)
+						if (send_flags(fd, C_DISC, address, NULL, 4) <= 0)
 							return -1;
 						state=2;
 						continue;
 					case C_INFO_0:
-						if (send_flags(fd, C_INFO_0, A_TRANSMITTER, data, size+5) <= 0)
+						if (send_flags(fd, C_INFO_0, address, data, size+5) <= 0)
 							return -1;
 						state=3;
 						continue;
 					case C_INFO_1:
-						if (send_flags(fd, C_INFO_1, A_TRANSMITTER, data, size+5) <= 0)
+						if (send_flags(fd, C_INFO_1, address, data, size+5) <= 0)
 							return -1;
 						state=3;
 						continue;
@@ -452,7 +447,7 @@ int write_message(int fd, char * type, char flagA, char flagC, char * data, int 
 				flagTimer=0;
 				alarm(TIMEOUT);	//turn on alarm
 
-				get_message(fd, type_2, &flagA_2,  &flagC_2, data_2, TRANSMITTER);
+				get_message(fd, type_2, &address_2,  &control_2, data_2, TRANSMITTER);
 
 				flagTimer=0;	//turn off alarm
 				alarm(0);
@@ -479,7 +474,7 @@ int write_message(int fd, char * type, char flagA, char flagC, char * data, int 
 				flagTimer=0;
 				alarm(TIMEOUT);	//turn on alarm
 
-				res = get_message(fd, type_2, &flagA_2,  &flagC_2, NULL, TRANSMITTER);
+				res = get_message(fd, type_2, &address_2,  &control_2, NULL, TRANSMITTER);
 
 				flagTimer=0;	//turn off alarm
 				alarm(0);
@@ -508,15 +503,15 @@ int write_message(int fd, char * type, char flagA, char flagC, char * data, int 
 				flagTimer=0;
 				alarm(TIMEOUT);	//turn on alarm
 
-				res = get_message(fd, type_2, &flagA_2,  &flagC_2, NULL, TRANSMITTER);
+				res = get_message(fd, type_2, &address_2,  &control_2, NULL, TRANSMITTER);
 
 				flagTimer=0;	//turn off alarm
 				alarm(0);
 
 			if (res > 0) {
-				  switch ((unsigned char) (flagC_2)) {
+				  switch ((unsigned char) (control_2)) {
 						case C_RR:
-							if (flagC == C_INFO_1)
+							if (control == C_INFO_1)
 							  state = 4;
 
 							else if (count < NUMTRANSMISSIONS) {
@@ -534,7 +529,7 @@ int write_message(int fd, char * type, char flagA, char flagC, char * data, int 
 							}
 						  break;
 						case C_RR_ACK:
-							if (flagC == C_INFO_0)
+							if (control == C_INFO_0)
 								state = 4;
 
 							else if (count < NUMTRANSMISSIONS) {
@@ -600,7 +595,7 @@ int write_message(int fd, char * type, char flagA, char flagC, char * data, int 
 				}
 				break;
 			case 4:
-				if (flagC == C_INFO_0 || flagC == C_INFO_1 )
+				if (control == C_INFO_0 || control == C_INFO_1 )
 					return size;
 
 				terminateStateMachineFlag = 1;
@@ -615,10 +610,9 @@ int write_message(int fd, char * type, char flagA, char flagC, char * data, int 
 	return 1;
 }
 
-
-int llopen(char * port){
+int llopen(char * port) {
 	int fd;
-	char type[10], flagA, flagC;
+	char type[10], address, control;
 
 	fd = open_port(port);
 
@@ -636,8 +630,8 @@ int llopen(char * port){
 	}
 
 	else {
-		if (get_message(fd, type, &flagA, &flagC, NULL, RECEIVER) != -1) {
-			if (flagC == C_SET) {
+		if (get_message(fd, type, &address, &control, NULL, RECEIVER) != -1) {
+			if (control == C_SET) {
 				printf("Behold! The port has opened! Creatures will come forth!\n");
 				return fd;
 			}
@@ -649,15 +643,21 @@ int llopen(char * port){
 		else
 			return -1;
 	}
+
+	return 0;
 }
 
-int llwrite(int fd, char * buffer, int size) {
+int llwrite(int fd, char * buf, int size) {
 	int res=0;
-	char type[10], flagA, flagC, *data;
+	char type[10];
 
-	res = write_message(fd, type, A_TRANSMITTER, NUMPACKETS%2 ? C_INFO_1 : C_INFO_0, buffer, size);
+	if (NUMPACKETS%2)
+		res = write_message(fd, type, A_TRANSMITTER, C_INFO_1, buf, size);
 
-	if(res>0) {
+	else
+		res = write_message(fd, type, A_TRANSMITTER, C_INFO_0, buf, size);
+
+	if (res > 0) {
 		NUMPACKETS++;
 		return res;
 	}
@@ -667,29 +667,31 @@ int llwrite(int fd, char * buffer, int size) {
 }
 
 int llread(int fd, char * buf) {
-	char type[10], flagC=2, flagA;
-	int nrecebidas;
+	int res;
+	char type[10], control=2, address;
 
-	while (flagC != C_INFO_0 && flagC != C_INFO_1) {
-		if ((nrecebidas = get_message(fd, type, &flagA, &flagC, buf, RECEIVER))) {
+	while (control != C_INFO_0 && control != C_INFO_1) {
+		if ((res = get_message(fd, type, &address, &control, buf, RECEIVER))) {
 			NUMPACKETS++;
 
-			if (flagC==C_DISC)
+			if (control == C_DISC)
 				return -2;
 
-			if (flagC==C_SET)
+			if (control == C_SET)
 				continue;
 
-			return nrecebidas-6;
+			return res-6;
 		}
 
 		else
 			return -1;
 	}
+
+	return 0;
 }
 
 int llclose(int fd) {
-	char type[10], flagA, flagC;
+	char type[10], address, control;
 
 	if (STATUS == 1) {
 		if (write_message(fd, "DISC", A_TRANSMITTER, C_DISC, NULL, TRANSMITTER))
@@ -700,7 +702,7 @@ int llclose(int fd) {
 	}
 
 	else {
-		if (get_message(fd, type, &flagA, &flagC, NULL, RECEIVER)) {
+		if (get_message(fd, type, &address, &control, NULL, RECEIVER)) {
 			if (!strcmp(type, "DISC"))
 				printf("The port is closing! Quick! Run for your life!\n");
 
@@ -726,5 +728,6 @@ void statistics() {
 	printf("|Timeouts         | %d |\n", n_timeouts);
 	printf("|REJs sent        | %d |\n", count_msg_dropped);
 	printf("|Duplicates found | %d |\n", duplicate_found);
-	printf("'-----------------'---'\n");
+	printf("'-----------------'---'\n\n");
 }
+
