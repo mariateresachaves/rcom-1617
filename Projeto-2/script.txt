@@ -1,0 +1,43 @@
+ifconfig eth0 172.16.30.1/24 //tux1
+ifconfig eth0 172.16.30.254/24 //tux4
+ifconfig eth1 172.16.31.253/24 //tux4
+ifconfig eth0 172.16.31.1/24 //tux2
+
+//PARA GUARDAR CONFIGURAÇÕES
+tux-sw3# copy running-config flash:miguel-teresa-6
+
+//PARA REPOR CONFIGURAÇÕES
+tux-sw3# copy flash:miguel-teresa-6 startup-config
+tux-sw3# reload
+
+//GTK Terminal
+//configurar vlans e adicionar as portas
+telnet 172.16.1.30
+//password: 8nortel
+
+configure terminal
+vlan 30
+end
+show vlan 30 //ou show vlan brief
+
+configure terminal
+interface fastEthernet 0/1
+switchport mode access
+switchport access vlan 30
+end
+show running-config interface fastEthernet 0/4 //para a porta 4 do switch
+
+//repetir para outras portas e vlans necessárias
+
+//TRANSFORMAR TUX4 NUM ROUTER
+
+tux34:~# echo 1 > /proc/sys/net/ipv4/ip_forward //ativar ip forwarding
+
+tux31:~# route add default gw 172.16.30.254
+tux32:~# route add default gw 172.16.31.253
+
+tux34:~# tcpdump -s 255 -w capture.pcap
+tux32:~# ping 172.16.30.1 //ou
+tux31:~# ping 172.16.31.1
+
+route -n //para saber no terminal quais as rotas existentes no tux
