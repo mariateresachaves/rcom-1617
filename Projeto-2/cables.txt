@@ -1,0 +1,9 @@
+3.1 -> Router 0/1
+switch -> penúltimo a linha de cima
+
+tux31 E0 -> Porta 1
+tux32 E0 -> Porta 2
+tux34 S0 -> último a linha de cima
+tux34 E0 -> Porta 4
+tux34 E4 -> Porta 3
+Router 0/0 -> Porta 13
