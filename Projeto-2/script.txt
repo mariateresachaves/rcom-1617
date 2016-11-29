@@ -13,6 +13,8 @@ tux-sw3# reload
 //GTK Terminal
 //configurar vlans e adicionar as portas
 telnet 172.16.1.30
+//OU
+en
 //password: 8nortel
 
 configure terminal
