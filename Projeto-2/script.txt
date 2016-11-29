@@ -43,3 +43,7 @@ tux32:~# ping 172.16.30.1 //ou
 tux31:~# ping 172.16.31.1
 
 route -n //para saber no terminal quais as rotas existentes no tux
+
+//REMOVER UMA ROTA
+route del -net <destination> gw <gateway>
+route del -net 172.16.30.0 gw 172.16.31.253
