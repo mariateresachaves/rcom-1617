@@ -1,0 +1,58 @@
+html{
+	background: darkblue;
+}
+
+h1{
+	clear:left;
+	margin: 10px;
+	color: red;
+}
+
+h2{
+	margin: 10px 20px;
+	color: orange;
+}
+
+h3{
+	margin: 5px 40px;
+}
+
+p{
+	margin: 10px 40px;
+	color: yellow;
+}
+
+a{
+	color: darkgoldenrod;
+}
+
+div{
+	border-top: 1px solid yellow;
+}
+
+#indice{
+	overflow: none;
+	border: 1px solid yellow;
+}
+
+#indice h2{
+
+}
+
+#indice div{
+    display: inline-block;
+    border: 1px solid yellow;
+}
+
+#indice div div{
+	position:absolute;
+    display: none;
+    padding: 12px 16px;
+    z-index: 1;
+    background: darkblue;
+}
+
+
+#indice div:hover div{
+    display: block;
+}

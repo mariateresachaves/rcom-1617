@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Main</title>
+        <link href="main.css" rel="stylesheet">
+    </head>
+	<body>
+	    <h1>Indice</h1>
+	    <div id="indice">
+	        <div>
+                <h2><a href="#config">Configuração Inicial</a></h2>
+                <div>
+                    <h3><a href="#configC">Cabos</a></h3>
+                    <h3><a href="#configS">Switch</a></h3>
+                    <h3><a href="#configT1">Tux1</a></h3>
+                    <h3><a href="#configT2">Tux2</a></h3>
+                    <h3><a href="#configT3">Tux3</a></h3>
+                </div>
+            </div>
+            <div>
+                <h2><a href="#switch">Switch</a></h2>
+                <div>
+                    <h3><a href="#switchL">Login</a></h3>
+                    <h3><a href="#switchC">Create VLAN</a></h3>
+                    <h3><a href="#switchD">Delete VLAN</a></h3>
+                    <h3><a href="#switchA">Add Port Y to VLAN X</a></h3>
+                </div>
+            </div>
+
+            <div>
+                <h2><a href="#router">Router</a></h2>
+                <div>
+                    <h3><a href="#routerL">Login</a></h3>
+                    <h3><a href="#routerO">Open/Close Configuration</a></h3>
+                    <h3><a href="#routerC">Configure Interface</a></h3>
+                    <h3><a href="#routerNat">Add Nat</a></h3>
+                    <h3><a href="#routerAR">Add Route</a></h3>
+                </div>
+            </div>
+            <div>
+                <h2><a href="#tux">Tuxes</a></h2>
+                <div>
+                    <h3><a href="#tuxIP">Create Interface and Change IP</a></h3>
+                    <h3><a href="#tuxADG">Add Default Getway Route</a></h3>
+                    <h3><a href="#tuxAR">Add Route to a Sub-network</a></h3>
+                    <h3><a href="#tuxRR">Remove Route</a></h3>
+                    <h3><a href="#tuxFF">Enable Fast-Forward</a></h3>
+                </div>
+            </div>
+        </div>
+        <div id="config">
+            <h1>Configuração Inicial</h1>
+                <h2 id="configC">Cabos</h2>
+                    <p> PC1 - srl0<br>
+                        PC1 - eth0 ------ switch[1]<br>
+                        PC1 - eth1<br>
+                        PC1 - eth2
+                    </p>
+                    <p> PC2 - srl0<br>
+                        PC2 - eth0 ------ switch[2]<br>
+                        PC2 - eth1<br>
+                        PC2 - eth2</p>
+                    <p> PC3 - srl0<br>
+                        PC3 - eth0<br>
+                        PC3 - eth1<br>
+                        PC3 - eth2<br>
+                    <p> PC4 - srl0 ----------------------------------- CROSSOVER <br>
+                        PC4 - eth0 ------ switch[4]<br>
+                        PC4 - eth1 ------ switch[3]<br>
+                        PC4 - eth2</p>
+                    <p> GigaBit0/0 ------ switch[GB 1]<br>
+                        GigaBit0/1 ------ upper Row[3.1]<br>
+                        ...<br>
+                        RouterCons ---------------------------- O --- CROSSOVER <br>
+                        SwitchCons ---------------------------- U</p>
+                 <h2 id="configS">Switch Console (Serial)</h2>
+                    <p> //login<br>
+                        enable<br>
+                        password: 8nortel</p>
+                    <p> //load config<br>
+                        copy flash:artur_joao_nuno7 startup-config<br>
+                        reload</p>
+                    <p> //check if vlan are open<br>
+                        show vlan brief</p>
+                    <p> //open vlan if closed<br>
+                        configure terminal<br>
+                        vlan 30<br>
+                        end<br>
+                        configure terminal<br>
+                        vlan 31<br>
+                        end
+                    </p>
+                 <h2 id="configR">Router Console (Serial)</h2>
+                    <p> //login<br>
+                        user: root<br>
+                        password: 8nortel</p>
+                    <p> //load config<br>
+                        copy flash:artur_joao_nuno7r startup-config<br>
+                        reload</p>
+                    <p> //show info<br>
+                        show ip route</p>
+                 <h2 id="configT1">Tux 1 (Console)</h2>
+                    <p> //config IPs<br>
+                        ifconfig eth0 up<br>
+                        ifconfig eth0 172.16.30.1/24<br>
+                        route add default gw 172.16.30.254<br>
+                    </p>
+                 <h2 id="configT2">Tux 2 (Console)</h2>
+                    <p> //config IPs<br>
+                        ifconfig eth0 up<br>
+                        ifconfig eth0 172.16.31.1/24<br>
+                        route add default gw 172.16.31.253<br>
+                    </p>
+                <h2 id="configT4">Tux 4 (Console)</h2>
+                    <p> //config IPs<br>
+                        ifconfig eth0 up<br>
+                        ifconfig eth0 172.16.30.254/24<br>
+                        ifconfig eth1 up<br>
+                        ifconfig eth1 172.16.31.253/24<br>
+                        route add -net 172.16.30.0/24 gw 172.16.30.254<br>
+                        route add -net 172.16.31.0/24 gw 172.16.31.253<br>
+                        echo 1 > /proc/sys/net/ipv4/ip_forward<br>
+                        echo 0> /proc/sys/net/ipv4/icmp_echo_ignore_broadcasts
+                    </p>
+        </div>
+
+        <div id="switch">
+            <h1>Switch</h1>
+                <h2 id="switchL">Login</h2>
+                    <p> enable<br>
+                        password: 8nortel</p>
+                <h2 id="switchC">Create VLAN</h2>
+                    <p> configure terminal<br>
+                        vlan X //X = VLAN ID<br>
+                        end
+                    </p>
+                <h2 id="switchD">Delete VLAN</h2>
+                    <p> configure terminal<br>
+                        no vlan X //X = VLAN ID<br>
+                        end
+                    </p>
+                <h2 id="switchA">Add Port Y to VLAN X</h2>
+                    <p> configure terminal<br>
+                        interface fastethernet 0/Y<br>
+                        switchport mode access<br>
+                        switchport access vlan X<br>
+                        end
+                    </p>
+        </div>
+        <div id="router">
+            <h1>Router</h1>
+                <h2 id="routerL">Login</h2>
+                    <p> user: root<br>
+                        password: 8nortel</p>
+                <h2 id="routerO">Open/Close Configuration</h2>
+                    <p> conf t <br>
+                        // Some Commands<br>
+                        end
+                        </p>
+                <h2 id="routerC">Configure Interface</h2>
+                    <p> interface gigabitethernet 0/0 <br>
+                        ip address "IP" "Mask" //Example: ip address 172.16.31.254 255.255.255.0<br> 
+                        no shutdown<br>
+                        ip nat inside/outside //Nat, inside for local network interface, outside to the outer interface<br>
+                        </p>
+                <h2 id="routerNat">Add Nat</h2>
+                    <p> //IMPORTANT: Add nat to interface(see above)<br>
+                        ip nat pool ovrld 172.16.1.39 172.16.1.39 prefix 24 // IP is the Ip of the outer router interface<br>
+                        ip nat inside source list 1 pool ovrld overload<br>
+                        access-list 1 permit 172.16.30.0 0.0.0.7 //IPs of the VLANs<br>
+                        access-list 1 permit 172.16.31.0 0.0.0.7 <br>
+                        </p>
+                <h2 id="routerAR">Add Route</h2>
+                    <p> ip route "Destination IP" "Mask" "Gateway"
+                        Example(our work):
+                        ip route 0.0.0.0 0.0.0.0 172.16.1.254 // Default Gateway: room's main router
+                        ip route 172.16.30.0 255.255.255.0 172.16.11.253  // Gateway to VLAN 30
+                        </p>
+        </div>
+        
+        <div id="tux">
+            <h1>Tuxes</h1>
+                <h2 id="tuxIP">Create Interface and Change IP</h2>
+                    <p> //X = Interface Number(0-2), M = Mask(using 24 normally)<br>
+                        ifconfig ethX up<br>
+                        ifconfig ethX "ip-address"/M
+                        </p>
+                <h2 id="tuxADG">Add Default Getway Route</h2>
+                    <p> //When destination not in the network they go to default.<br>
+                        //The default ip machine should be a router.<br>
+                        //There can only be ONE default gateway<br>
+                        route add default gw "ip-address-of-the-router"
+                        </p>
+                <h2 id="tuxRR">Add Route to a Sub-network</h2>
+                    <p> //On the Router, redirects packets directed to a IP&Mask to the second IP.<br>
+                        //M = Mask(using 24 normally)<br>
+                        route add -net "Destination Ip"/M gw "ip-address-of-the-router"<br><br>
+                        //Example<br>
+                        route add -net 172.16.30.0/24 gw 172.16.30.254<br>
+                        //A packet directed at 172.16.30.1(172.16.30.0 with Mask) goes to 172.16.30.254
+                        </p>
+                <h2 id="tuxADG">Remove Route</h2>
+                    <p> route del -net "Destination Ip"/M gw "ip-address-of-the-router"
+                        </p>
+                <h2 id="tuxFF">Enable Fast-Forward</h2>
+                    <p> echo 1 > /proc/sys/net/ipv4/ip_forward<br>
+                        echo 0> /proc/sys/net/ipv4/icmp_echo_ignore_broadcasts
+                        </p>
+        </div>
+    </body>
+</html>
