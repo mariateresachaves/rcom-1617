@@ -1,0 +1,75 @@
+// Configure Switch
+
+en
+password: 8nortel
+
+// Delete all configurations on switch
+erase startup-config
+delete vlan.dat
+reload
+
+// Create 2 vlans (ids = 30, 31)
+configure terminal
+vlan 30
+end
+configure terminal
+vlan 31
+end
+show vlan 30
+show vlan 31
+
+
+// Add ports to vlans
+
+// tux31 E0 on port 1
+configure terminal
+interface fastEthernet 0/1
+switchport mode access
+switchport access vlan 30
+end
+
+// tux32 E0 on port 2
+configure terminal
+interface fastEthernet 0/2
+switchport mode access
+switchport access vlan 31
+end
+
+// tux34 E0 on port 3
+configure terminal
+interface fastEthernet 0/3
+switchport mode access
+switchport access vlan 30
+end
+
+// tux34 E1 on port 4
+configure terminal
+interface fastEthernet 0/4
+switchport mode access
+switchport access vlan 31
+end
+
+// Configure Router
+username: root
+password: 8nortel
+
+configure terminal
+interface gigabitethernet 0/0
+ip address 172.16.11.254 255.255.255.0
+no shutdown
+ip nat inside
+exit
+
+interface gigabitethernet 0/1
+ip address 172.16.1.19 255.255.255.0
+no shutdown
+ip nat outside
+exit
+
+access-list 1 permit 172.16.10.0 0.0.0.7
+access-list 1 permit 172.16.11.0 0.0.0.7
+
+ip route 0.0.0.0 0.0.0.0 172.16.1.254
+ip route 172.16.10.0 255.255.255.0 172.16.11.253
+
+end
