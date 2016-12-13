@@ -10,30 +10,46 @@
 #include <signal.h>
 #include <netdb.h>
 #include <string.h>
+#include "parser.h"
 
 #define SERVER_PORT 21
 
-char* SERVER_ADDR = malloc(255);
+char* SERVER_ADDR ;
+
+/**
+ * @brief Funcao que verifica os argumentos passados pelo utilizador.
+ * @param argc - numero de argumentos.
+ * @param argv - argumentos inseridos.
+ */
+void check_args(int argc, char ** argv) {
+	if (argc != 3) {
+		printf("Usage: download ftp://[<user>:<password>@]<host>/<url-path>\n");
+		exit(1);
+	}
+}
 
 int main(int argc, char** argv){
+
+	char *buf1;
+	char *buf2;
+	char *buf3;
+	char *buf4;
 
 	int	sockfd;
 	struct	sockaddr_in server_addr;
 	int	bytes;
 
-	// TODO: Fazer o parser da string: "ftp://[<user>:<password>@]<host>/<url-path>"
-	//	 E colocar no buf1 -> user
-	//		      buf2 -> password
-	//		      buf3 -> host
-	//		      buf4 -> url-path
+	check_args(argc,argv);
 
-	char 	buf1[] = "miguel-teresa\n";
-	char 	buf2[] = "lindo\n";
-	char	buf3[] = "192.168.50.111\n";
-	char	buf4[] = "file.txt";
+	if (strcmp(argv[2],"default") == 0) {
+		buf1 = "miguel-teresa\n";
+		buf2 = "rcombuefixe\n";
+		buf3 = "192.168.50.111\n";
+		buf4 = "file.txt"; 
+	} else {
+		parser(argv[2]);
+	}
 
-	
-	
 	/*server address handling*/
 	bzero((char*)&server_addr,sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
