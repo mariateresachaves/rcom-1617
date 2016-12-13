@@ -1,9 +1,10 @@
-3.1 -> Router 0/1
-switch -> penúltimo a linha de cima
+3.1 -> Router GE 0/1
 
 tux31 E0 -> Porta 1
 tux32 E0 -> Porta 2
-tux34 S0 -> último a linha de cima
-tux34 E0 -> Porta 4
-tux34 E4 -> Porta 3
-Router 0/0 -> Porta 13
+tux34 S0 -> último a linha de cima (T4)
+tux34 E0 -> Porta 3
+tux34 E1 -> Porta 4
+
+Router GE 0/0 -> Porta 1 do gigabite
+switch console -> penúltimo a linha de cima
