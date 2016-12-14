@@ -7,14 +7,20 @@ void parser(char* url, char** user, char** password, char** host, char** url_pat
 	char msgbuf[100];
 
 	/* Compila a expressao regular */
-	reti = regcomp(&regex, "abc", 0);
+	/* ftp://[<user>:<password>@]<host>/<url-path>
+			<user> -> [[A-Za-z0-9_-]+
+			<password> -> [A-Za-z0-9]+ //TODO: mudar regex
+			<host> -> [0-9]+ //TODO: mudar regex
+			<url-path> -> [A-Za-z0-9_-]+ //TODO: mudar regex
+	*/
+	reti = regcomp(&regex, "ftp://\\[[A-Za-z0-9_-]+:[A-Za-z0-9]+\\]@[0-9]+\\/[A-Za-z0-9_-]+", REG_EXTENDED);
 	if (reti) {
 	    fprintf(stderr, "Could not compile regex\n");
 	    exit(1);
 	}
 
 	/* Executa a expressao regular */
-	reti = regexec(&regex, "abc", 0, NULL, 0);
+	reti = regexec(&regex, "ftp://[miguel-teresa_6:pass123]@123/url-path_name", 0, NULL, 0);
 	if (!reti) {
 	    puts("Match");
 	}
@@ -29,13 +35,4 @@ void parser(char* url, char** user, char** password, char** host, char** url_pat
 
 	/* Liberta a memoria alocada */
 	regfree(&regex);
-
-	// TODO: Fazer o parser da string: "ftp://[<user>:<password>@]<host>/<url-path>"
-	//	 E colocar no buf1 -> user
-	//		      buf2 -> password
-	//		      buf3 -> host
-	//		      buf4 -> url-path
-
-
-	printf("ENTREI NO PARSER; FODASSE RCOM\n");
 }
