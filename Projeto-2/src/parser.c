@@ -1,12 +1,12 @@
 #include "parser.h"
 
-int parser(char* url, char** user, char** password, char** host, char** url_path) {
+int parser(char* url, ftp_info * info) {
 	int check_return;
 
 	check_return = check_regex(url);
 
 	if(check_return == 0)
-		 return url_parser(url, user, password, host, url_path);
+		 return url_parser(url, info);
 
 	else
 		return check_return;
@@ -46,12 +46,12 @@ int check_regex(char* url) {
 	regfree(&regex);
 }
 
-int url_parser(char* url, char** user, char** password, char** host, char** url_path) {
+int url_parser(char* url, ftp_info * info) {
 	const char d1[2] = "[";
 	const char d2[2] = ":";
 	const char d3[2] = "@]";
 	const char d4[2] = "/";
-	char *token;
+	char *token, *user, *password, *host, *path;
 
 	//ftp://[<user>:<password>@]<host>/<url-path>
 
@@ -60,22 +60,22 @@ int url_parser(char* url, char** user, char** password, char** host, char** url_
 
 	if (token != NULL) {
 		// USER
-		*user = strtok(token, d2);
+		user = strtok(token, d2);
 		token = strtok(NULL, d2);
 
 		if (token != NULL) {
 			// PASSWORD
-			*password = strtok(token, d3);
+			password = strtok(token, d3);
 			token = strtok(NULL, d3);
 
 			if (token != NULL) {
 				// HOST
-				*host = strtok(token, d4);
+				host = strtok(token, d4);
 				token = strtok(NULL, "");
 
 				if (token != NULL)
 					// URL PATH
-					*url_path = token;
+					path = token;
 
 				else return URL_HOST_ERROR;
 			}
@@ -84,6 +84,11 @@ int url_parser(char* url, char** user, char** password, char** host, char** url_
 		else return URL_USER_ERROR;
 	}
 	else return URL_ERROR;
+
+	strcpy(info->user, user);
+	strcpy(info->password, password);
+	strcpy(info->host, host);
+	strcpy(info->path, path);
 
 	return SUCCESS_PARSER;
 }

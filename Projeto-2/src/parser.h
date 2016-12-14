@@ -4,6 +4,6 @@
 #include <regex.h>
 #include "Utilities.h"
 
-int parser(char* url, char** user, char** password, char** host, char** url_path);
+int parser(char* url, ftp_info * info);
 int check_regex(char* url);
-int url_parser(char* url, char** user, char** password, char** host, char** url_path);
+int url_parser(char* url, ftp_info * info);

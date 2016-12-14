@@ -1,10 +1,5 @@
 #define MAX_SIZE 255
 
-/* CLIENT FTP */
-#define SERVER_PORT 21
-
-struct hostent *h;
-
 /* REGEX RETURNS */
 #define URL_VALID 0
 #define REG_ERROR 1
@@ -17,3 +12,19 @@ struct hostent *h;
 #define URL_PASS_ERROR 6
 #define URL_HOST_ERROR 7
 #define SUCCESS_PARSER 0
+
+/* CLIENT FTP */
+#define IP_SIZE 15
+#define SERVER_PORT 21
+
+struct hostent *h;
+
+typedef struct {
+	int  sockfd;
+	int  data_sockfd;
+	int  file_size;
+	char user[MAX_SIZE];
+	char password[MAX_SIZE];
+	char host[MAX_SIZE];
+	char path[MAX_SIZE];
+} ftp_info;
