@@ -45,11 +45,19 @@ int get_address() {
 			return 0;
 }
 
+void create_cmd(char* buf, char** cmd) {
+	char src[50], dest[50];
+
+	strcpy(src, buf);
+	strcpy(dest, *cmd);
+
+	strcat(dest, src);
+
+	*cmd = dest;
+}
+
 int main(int argc, char** argv) {
-	char* buf1;
-	char* buf2;
-	char* buf3;
-	char* buf4;
+	char *buf1, *buf2, *buf3, *buf4, *cmd;
 
 	int	sockfd, parse_ret;
 	struct	sockaddr_in server_addr;
@@ -59,7 +67,7 @@ int main(int argc, char** argv) {
 
 	// caso nao seja passado um url
 	if (strcmp(argv[2],"default") == 0) {
-		buf1 = "miguel-teresa\n";
+		buf1 = "miguel-teresa-6\n";
 		buf2 = "rcombuefixe\n";
 		buf3 = "192.168.50.111\n";
 		buf4 = "file.txt";
@@ -111,6 +119,15 @@ int main(int argc, char** argv) {
 	// obter o endereço
 	get_address();
 
+	// Just to test TODO: Remove this!
+	// TODO: desde aqui-------------
+	cmd = "user ";
+	create_cmd(buf1, &cmd);
+
+	printf("A enviar comando.... [%s]\n", cmd);
+
+	//TODO: até aqui-------------
+
 	/*server address handling*/
 	bzero((char*)&server_addr,sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
@@ -129,7 +146,34 @@ int main(int argc, char** argv) {
         	perror("connect()");
 		exit(0);
 	}
-    	/*send a string to the server*/
+
+	/*send a string to the server*/
+	// Enviar o comando "user BUF1" para o sockfd
+	cmd = "user ";
+	create_cmd(buf1, &cmd);
+	//bytes = write(sockfd, cmd, strlen(cmd));
+	printf("A enviar comando.... [%s]\n", cmd);
+
+	// Ler o código da string "331 Password required for BUF1" do sockfd
+
+	// Enviar a string "pass BUF2" para o sockfd
+
+	// Ler o código da string "230 User BUF1 logged in"
+
+	// Enviar a string "pasv" para o sockfd
+
+	// Ler os dois ultimos números da string "227 Entering Passive Mode (193,136,28,12,19,91)"
+	//		por exemplo percorrer a string até encontrar um ) e ir buscar os dois números anteriores
+
+	// Com os dois números lidos calcular o valor da nova porta.
+	//			porta = Num1 * 256 + Num2
+
+	// Abrir um sockfd2 com a nova porta que foi calculada
+
+	// Enviar a string "retr BUF4" para o sockfd
+
+	// Ler a string "retr BUF4" no sockfd2
+
 	//bytes = write(sockfd, buf, strlen(buf));
 	//printf("Bytes escritos %d\n", bytes);
 
