@@ -9,7 +9,7 @@ void check_args(int argc, char ** argv) {
 
 int get_address(ftp_info * info) {
 			// TODO: mudar o hostname de localhost para o buf3
-			if ((h=gethostbyname("localhost")) == NULL) {
+			if ((h=gethostbyname(info->host)) == NULL) {
 					herror("gethostbyname");
 					exit(1);
 			}

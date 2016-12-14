@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
 	if (strcmp(argv[2],"default") == 0) {
     strcpy(info->user, "miguel-teresa-6");
     strcpy(info->password, "rcombuefixe");
-    strcpy(info->host, "192.168.50.111");
+    strcpy(info->host, "ftp.up.pt");
     strcpy(info->path, "file.txt");
 	}
 	// caso tenha um url
@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
 	}
 
 	// obter o endereço
-	get_address();
+	get_address(info);
 
 	// Just to test TODO: Remove this!
 	// TODO: desde aqui-------------

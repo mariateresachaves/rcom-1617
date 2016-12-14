@@ -5,7 +5,7 @@ int parser(char* url, ftp_info * info) {
 
 	check_return = check_regex(url);
 
-	if(check_return == 0)
+	if(check_return == URL_VALID)
 		 return url_parser(url, info);
 
 	else
@@ -20,10 +20,10 @@ int check_regex(char* url) {
 	/* ftp://[<user>:<password>@]<host>/<url-path>
 			<user> -> [[A-Za-z0-9_-]+
 			<password> -> [A-Za-z0-9]+ //TODO: regex apenas aceita passwords com letras numeros _ e -
-			<host> -> [0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}
+			<host> -> [A-Za-z0-9\\.]+
 			<url-path> -> ([A-Za-z0-9_-]+\\/)+
 	*/
-	reti = regcomp(&regex, "ftp://\\[[A-Za-z0-9_-]+:[A-Za-z0-9]+\\]@[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\/([A-Za-z0-9_-]+\\/)+", REG_EXTENDED);
+	reti = regcomp(&regex, "ftp://\\[[A-Za-z0-9_-]+:[A-Za-z0-9]+@\\][A-Za-z0-9\\.]+\\/([A-Za-z0-9_-]+\\/)+", REG_EXTENDED);
 	if (reti)
 	    return REG_ERROR;
 
