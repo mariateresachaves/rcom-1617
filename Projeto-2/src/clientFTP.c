@@ -13,10 +13,6 @@
 #include <errno.h>
 #include "parser.h"
 
-#define SERVER_PORT 21
-
-struct hostent *h;
-
 /**
  * @brief Funcao que verifica os argumentos passados pelo utilizador.
  * @param argc - numero de argumentos.
@@ -55,7 +51,7 @@ int main(int argc, char** argv) {
 	char* buf3;
 	char* buf4;
 
-	int	sockfd;
+	int	sockfd, parse_ret;
 	struct	sockaddr_in server_addr;
 
 	// verifica se os argumentos
@@ -70,7 +66,46 @@ int main(int argc, char** argv) {
 	}
 	// caso tenha um url
 	else {
-		parser(argv[2], &buf1, &buf2, &buf3, &buf4);
+		parse_ret = parser(argv[2], &buf1, &buf2, &buf3, &buf4);
+
+		// ERROR MESSAGES
+		switch (parse_ret) {
+			case REG_ERROR:
+				printf("[Erro Regex] Nao foi possivel compilar a expressao regular.\n");
+				return REG_ERROR;
+				break;
+			case URL_NOTVALID:
+				printf("[Erro Regex] URL inserido nao e valido.\n");
+				return URL_NOTVALID;
+				break;
+			case REGEX_URL_ERROR:
+				printf("[Erro Regex] A expressao regular nao encontrou correspondencia.\n");
+				return REGEX_URL_ERROR;
+				break;
+			case URL_ERROR:
+				printf("[Erro URL] Nao foi possivel fazer parse.");
+				return URL_ERROR;
+				break;
+			case URL_USER_ERROR:
+				printf("[Erro User] Nao foi possivel fazer parse.");
+				return URL_USER_ERROR;
+				break;
+			case URL_PASS_ERROR:
+				printf("[Erro Password] Nao foi possivel fazer parse.");
+				return URL_PASS_ERROR;
+				break;
+			case URL_HOST_ERROR:
+				printf("[Erro Host] Nao foi possivel fazer parse.");
+				return URL_HOST_ERROR;
+				break;
+			default:
+				break;
+		}
+
+		printf("user: \"%s\"\n", buf1);
+		printf("password: \"%s\"\n", buf2);
+		printf("host: \"%s\"\n", buf3);
+		printf("url path: \"%s\"\n", buf4);
 	}
 
 	// obter o endereço
