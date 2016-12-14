@@ -37,6 +37,7 @@ void check_args(int argc, char ** argv) {
 			char    **h_addr_list;	A zero-terminated array of network addresses for the host.
 };*/
 int get_address() {
+			// TODO: mudar o hostname de localhost para o buf3
 			if ((h=gethostbyname("localhost")) == NULL) {
 					herror("gethostbyname");
 					exit(1);
@@ -49,14 +50,13 @@ int get_address() {
 }
 
 int main(int argc, char** argv) {
-	char *buf1;
-	char *buf2;
-	char *buf3;
-	char *buf4;
+	char* buf1;
+	char* buf2;
+	char* buf3;
+	char* buf4;
 
 	int	sockfd;
 	struct	sockaddr_in server_addr;
-	int	bytes;
 
 	// verifica se os argumentos
 	check_args(argc,argv);
@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
 	}
 	// caso tenha um url
 	else {
-		parser(argv[2]);
+		parser(argv[2], &buf1, &buf2, &buf3, &buf4);
 	}
 
 	// obter o endereço

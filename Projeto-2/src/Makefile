@@ -1,4 +1,4 @@
 all:
-	gcc -Wall -o clientTCP clientTCP.c parser.c
+	gcc -Wall -o clientFTP clientFTP.c parser.c
 clean:
-	rm clientTCP
+	rm clientFTP
