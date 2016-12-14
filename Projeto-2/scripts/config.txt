@@ -86,6 +86,6 @@ ip route 0.0.0.0 0.0.0.0 172.16.1.254
 ip route 172.16.30.0 255.255.255.0 172.16.31.253
 end
 
-// Remove iptables
+// Remove iptables no terminal do tux4
 iptables -F
 iptables -t nat -F
