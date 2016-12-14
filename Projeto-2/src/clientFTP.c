@@ -178,9 +178,13 @@ int download_file(ftp_info * info) {
 		exit(-1);
 	}
 
+	printf("Downloading %s...\n", info->file_name);
+
 	while((bytes = read(info->data_sockfd, buf, sizeof(char)*MAX_SIZE)) > 0) {
 		fwrite(buf, bytes, 1, fd_file);
 	}
+
+	printf("Download finished.\n");
 
 	close(info->data_sockfd);
 	fclose(fd_file);

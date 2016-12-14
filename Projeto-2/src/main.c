@@ -30,6 +30,7 @@ int main(int argc, char** argv) {
 		printf("password: \"%s\"\n", info->password);
 		printf("host: \"%s\"\n", info->host);
 		printf("url path: \"%s\"\n", info->path);
+		printf("file name: \"%s\"\n", info->file_name);
 	}
 
 	// obter o endereço

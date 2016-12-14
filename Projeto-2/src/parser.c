@@ -56,7 +56,6 @@ int url_parser(char* url, ftp_info * info) {
 	char *password 	 = (char*)malloc(MAX_SIZE);
 	char *host 	 = (char*)malloc(MAX_SIZE);
 	char *path 	 = (char*)malloc(MAX_SIZE);
-	char *last_token = (char*)malloc(MAX_SIZE);
 
 	//ftp://[<user>:<password>@]<host>/<url-path>
 
@@ -95,18 +94,10 @@ int url_parser(char* url, ftp_info * info) {
 	strcpy(info->host, host);
 	strcpy(info->path, path);
 
-	while(1) {
-		token = strtok(path, d4);		
-		token = strtok(NULL, "");
+	token = strrchr(path, '/');
 
-		if(token == NULL) {
-			break;
-		}
-
-		last_token = token;
-	}
-
-	strcpy(info->file_name, last_token);
+	if (token && *(token + 1))
+		strcpy(info->file_name, token+1);
 
 	return SUCCESS_PARSER;
 }
