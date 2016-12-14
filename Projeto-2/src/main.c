@@ -3,10 +3,10 @@
 int main(int argc, char** argv) {
 	char cmd[MAX_SIZE] = "";
 	char * response = (char*)malloc(MAX_SIZE);
-	int	parse_ret;
-  	struct	sockaddr_in server_addr;
+	int new_port = 0;
+	int parse_ret;
 
-  ftp_info* info = malloc(sizeof(ftp_info));
+	ftp_info* info = malloc(sizeof(ftp_info));
 	memset(info, 0, sizeof(ftp_info));
 
 	// verifica se os argumentos
@@ -14,10 +14,10 @@ int main(int argc, char** argv) {
 
 	// caso nao seja passado um url
 	if (strcmp(argv[2],"default") == 0) {
-    strcpy(info->user, "miguel-teresa-6");
-    strcpy(info->password, "rcombuefixe");
-    strcpy(info->host, "ftp.up.pt");
-    strcpy(info->path, "file.txt");
+	    strcpy(info->user, "miguel-teresa-6");
+	    strcpy(info->password, "rcombuefixe");
+	    strcpy(info->host, "ftp.up.pt");
+	    strcpy(info->path, "file.txt");
 	}
 	// caso tenha um url
 	else {
@@ -35,26 +35,7 @@ int main(int argc, char** argv) {
 	// obter o endereço
 	get_address(info);
 
-	/*server address handling*/
-	bzero((char*)&server_addr,sizeof(server_addr));
-	server_addr.sin_family = AF_INET;
-	server_addr.sin_addr.s_addr = inet_addr(info->server_address);	/*32 bit Internet address network byte ordered*/
-	server_addr.sin_port = htons(SERVER_PORT);		/*server TCP port must be network byte ordered */
-
-	/*open an TCP socket*/
-	if ((info->sockfd = socket(AF_INET,SOCK_STREAM,0)) < 0) {
-    		perror("socket()");
-        	exit(0);
-    	}
-
-	printf("Socket connected port:%d ip:%s\n", info->sockfd, info->server_address);
-	/*connect to the server*/
-    	if(connect(info->sockfd,
-	           (struct sockaddr *)&server_addr,
-		   sizeof(server_addr)) < 0){
-        	perror("connect()");
-		exit(0);
-	}
+	connect_to_server(info, NORMAL, SERVER_PORT);
 
 	/*send a string to the server*/
 	// Enviar o comando "user BUF1" para o sockfd
@@ -97,33 +78,25 @@ int main(int argc, char** argv) {
 	// Estamos logados
 
 	// Enviar a string "pasv" para o sockfd
-	sprintf(cmd, "PASV\n");	
-
-	if (write_command(info, cmd, strlen(cmd)) != SEND_CMD_SUCCESS){
-		perror("[Erro Write]\n");
-		exit(-1);
-	}
-
 	// Ler os dois ultimos números da string "227 Entering Passive Mode (193,136,28,12,19,91)"
 	//		por exemplo percorrer a string até encontrar um ) e ir buscar os dois números anteriores
-
-	memset(response, 0, MAX_SIZE);
-	if (read_response(info, &response) != RECEIVE_CMD_SUCCESS){
-		perror("[Erro Read]\n");
-		exit(-1);
-	}
 
 	// Com os dois números lidos calcular o valor da nova porta.
 	//			porta = Num1 * 256 + Num2
 
+	new_port = enter_passive_mode(info, cmd);
+	printf("PORTA: %d\n",new_port);
+
 	// Abrir um sockfd2 com a nova porta que foi calculada
-
+	connect_to_server(info, DATA, new_port);
+	
 	// Enviar a string "retr BUF4" para o sockfd
-
 	// Ler a string "retr BUF4" no sockfd2
+	check_file(info,cmd);
 
-	//bytes = write(sockfd, buf, strlen(buf));
-	//printf("Bytes escritos %d\n", bytes);
+	// Fazer o download do ficheiro
+	download_file(info);
+
 
 	close(info->sockfd);
 

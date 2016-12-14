@@ -27,10 +27,20 @@ void check_args(int argc, char ** argv);
 };*/
 int get_address();
 
-void create_cmd(ftp_info * info, char** cmd);
+int connect_to_server(ftp_info * info, int sockfd, int port);
 
-int check_errors(int parse_ret);
+void create_cmd(ftp_info * info, char** cmd);
 
 int write_command(ftp_info * info, char* cmd, int size);
 
 int read_response(ftp_info * info, char ** response);
+
+int enter_passive_mode(ftp_info * info, char* cmd);
+
+int calculate_port(char * response);
+
+int download_file(ftp_info * info);
+
+int check_file(ftp_info * info, char * cmd);
+
+int check_errors(int parse_ret);

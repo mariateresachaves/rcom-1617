@@ -51,7 +51,12 @@ int url_parser(char* url, ftp_info * info) {
 	const char d2[2] = ":";
 	const char d3[2] = "@]";
 	const char d4[2] = "/";
-	char *token, *user, *password, *host, *path;
+	char *token 	 = (char*)malloc(MAX_SIZE);
+	char *user 	 = (char*)malloc(MAX_SIZE);
+	char *password 	 = (char*)malloc(MAX_SIZE);
+	char *host 	 = (char*)malloc(MAX_SIZE);
+	char *path 	 = (char*)malloc(MAX_SIZE);
+	char *last_token = (char*)malloc(MAX_SIZE);
 
 	//ftp://[<user>:<password>@]<host>/<url-path>
 
@@ -73,10 +78,10 @@ int url_parser(char* url, ftp_info * info) {
 				host = strtok(token, d4);
 				token = strtok(NULL, "");
 
-				if (token != NULL)
+				if (token != NULL) {
 					// URL PATH
 					path = token;
-
+				}
 				else return URL_HOST_ERROR;
 			}
 			else return URL_PASS_ERROR;
@@ -89,6 +94,19 @@ int url_parser(char* url, ftp_info * info) {
 	strcpy(info->password, password);
 	strcpy(info->host, host);
 	strcpy(info->path, path);
+
+	while(1) {
+		token = strtok(path, d4);		
+		token = strtok(NULL, "");
+
+		if(token == NULL) {
+			break;
+		}
+
+		last_token = token;
+	}
+
+	strcpy(info->file_name, last_token);
 
 	return SUCCESS_PARSER;
 }

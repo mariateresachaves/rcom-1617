@@ -23,6 +23,8 @@
 /* CLIENT FTP */
 #define IP_SIZE 15
 #define SERVER_PORT 21
+#define DATA 1
+#define NORMAL 2
 
 struct hostent *h;
 
@@ -30,7 +32,7 @@ typedef struct {
 	char server_address[IP_SIZE];
 	int  sockfd;
 	int  data_sockfd;
-	int  file_size;
+	char file_name[MAX_SIZE];
 	char user[MAX_SIZE];
 	char password[MAX_SIZE];
 	char host[MAX_SIZE];
