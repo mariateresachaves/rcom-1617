@@ -1,4 +1,4 @@
-#define MAX_SIZE 255
+#define MAX_SIZE 1024
 
 /* REGEX RETURNS */
 #define URL_VALID 0
@@ -6,12 +6,19 @@
 #define URL_NOTVALID 2
 #define REGEX_URL_ERROR 3
 
-/* PARSER RETURNS*/
+/* PARSER RETURNS */
 #define URL_ERROR 4
 #define URL_USER_ERROR 5
 #define URL_PASS_ERROR 6
 #define URL_HOST_ERROR 7
 #define SUCCESS_PARSER 0
+
+/* CLIENT_FTP RETURNS */
+#define SEND_CMD_ERROR -1
+#define SEND_CMD_INCOMPLETE -2
+#define SEND_CMD_SUCCESS 0
+#define RECEIVE_CMD_ERROR -1
+#define RECEIVE_CMD_SUCCESS 0
 
 /* CLIENT FTP */
 #define IP_SIZE 15

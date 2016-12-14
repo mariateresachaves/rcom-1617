@@ -1,9 +1,10 @@
 #include "clientFTP.h"
 
 int main(int argc, char** argv) {
-	char *cmd;
+	char cmd[MAX_SIZE] = "";
+	char * response = (char*)malloc(MAX_SIZE);
 	int	parse_ret;
-  struct	sockaddr_in server_addr;
+  	struct	sockaddr_in server_addr;
 
   ftp_info* info = malloc(sizeof(ftp_info));
 	memset(info, 0, sizeof(ftp_info));
@@ -57,21 +58,60 @@ int main(int argc, char** argv) {
 
 	/*send a string to the server*/
 	// Enviar o comando "user BUF1" para o sockfd
-	cmd = "user ";
-	create_cmd(info, &cmd);
-	//bytes = write(info->sockfd, cmd, strlen(cmd));
-	printf("A enviar comando.... [%s]\n", cmd);
+
+	if (read_response(info, &response) != RECEIVE_CMD_SUCCESS){
+		perror("[Erro Read]\n");
+		exit(-1);
+	}
+	
+	sprintf(cmd, "USER %s\n", info->user);
+	
+	if (write_command(info, cmd, strlen(cmd)) != SEND_CMD_SUCCESS){
+		perror("[Erro Write]\n");
+		exit(-1);
+	}
+
 
 	// Ler o código da string "331 Password required for BUF1" do sockfd
+	memset(response, 0, MAX_SIZE);
+	if (read_response(info, &response) != RECEIVE_CMD_SUCCESS){
+		perror("[Erro Read]\n");
+		exit(-1);
+	}
 
-	// Enviar a string "pass BUF2" para o sockfd
+	sprintf(cmd, "PASS %s\n", info->password);
+	
+	if (write_command(info, cmd, strlen(cmd)) != SEND_CMD_SUCCESS){
+		perror("[Erro Write]\n");
+		exit(-1);
+	}
+
 
 	// Ler o código da string "230 User BUF1 logged in"
+	memset(response, 0, MAX_SIZE);
+	if (read_response(info, &response) != RECEIVE_CMD_SUCCESS){
+		perror("[Erro Read]\n");
+		exit(-1);
+	}
+	
+	// Estamos logados
 
 	// Enviar a string "pasv" para o sockfd
+	sprintf(cmd, "PASV\n");	
+
+	if (write_command(info, cmd, strlen(cmd)) != SEND_CMD_SUCCESS){
+		perror("[Erro Write]\n");
+		exit(-1);
+	}
 
 	// Ler os dois ultimos números da string "227 Entering Passive Mode (193,136,28,12,19,91)"
 	//		por exemplo percorrer a string até encontrar um ) e ir buscar os dois números anteriores
+
+	memset(response, 0, MAX_SIZE);
+	if (read_response(info, &response) != RECEIVE_CMD_SUCCESS){
+		perror("[Erro Read]\n");
+		exit(-1);
+	}
 
 	// Com os dois números lidos calcular o valor da nova porta.
 	//			porta = Num1 * 256 + Num2

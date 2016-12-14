@@ -30,3 +30,7 @@ int get_address();
 void create_cmd(ftp_info * info, char** cmd);
 
 int check_errors(int parse_ret);
+
+int write_command(ftp_info * info, char* cmd, int size);
+
+int read_response(ftp_info * info, char ** response);

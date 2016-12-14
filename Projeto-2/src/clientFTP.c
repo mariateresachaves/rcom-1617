@@ -8,7 +8,6 @@ void check_args(int argc, char ** argv) {
 }
 
 int get_address(ftp_info * info) {
-			// TODO: mudar o hostname de localhost para o buf3
 			if ((h=gethostbyname(info->host)) == NULL) {
 					herror("gethostbyname");
 					exit(1);
@@ -22,16 +21,37 @@ int get_address(ftp_info * info) {
 			return 0;
 }
 
-void create_cmd(ftp_info * info, char** cmd) {
-	char* buf = info->user;
-	char src[50], dest[50];
+int write_command(ftp_info * info, char* cmd, int size) {
+	int bytes;
 
-	strcpy(src, buf);
-	strcpy(dest, *cmd);
+	printf("A enviar comando -> %s", cmd);
 
-	strcat(dest, src);
+	bytes = write(info->sockfd, cmd, size);
 
-	*cmd = dest;
+	if (bytes <= 0){
+		printf("[Erro Write] Nao foi possivel enviar o comando: %s", cmd);
+		return SEND_CMD_ERROR;
+	}
+
+	if (bytes != size){
+		printf("[Erro Write] Nao foi possivel enviar todos os dados.\n");
+		return SEND_CMD_INCOMPLETE;
+	}
+
+	return SEND_CMD_SUCCESS;
+
+}
+
+int read_response(ftp_info * info, char ** response){
+
+	if (read(info->sockfd, *response, MAX_SIZE) <= 0){
+		printf("[Erro Read] Nao foi possivel receber uma resposta.\n");
+		return RECEIVE_CMD_ERROR;
+	}
+
+	printf("Resposta recebida com sucesso -> %s", *response);
+
+	return RECEIVE_CMD_SUCCESS;
 }
 
 int check_errors(int parse_ret) {
