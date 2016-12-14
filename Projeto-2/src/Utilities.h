@@ -20,6 +20,7 @@
 struct hostent *h;
 
 typedef struct {
+	char server_address[IP_SIZE];
 	int  sockfd;
 	int  data_sockfd;
 	int  file_size;

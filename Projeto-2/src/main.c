@@ -34,19 +34,10 @@ int main(int argc, char** argv) {
 	// obter o endereço
 	get_address(info);
 
-	// Just to test TODO: Remove this!
-	// TODO: desde aqui-------------
-	cmd = "user ";
-	create_cmd(info, &cmd);
-
-	printf("A enviar comando.... [%s]\n", cmd);
-
-	//TODO: até aqui-------------
-
 	/*server address handling*/
 	bzero((char*)&server_addr,sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
-	server_addr.sin_addr.s_addr = inet_addr(h->h_name);	/*32 bit Internet address network byte ordered*/
+	server_addr.sin_addr.s_addr = inet_addr(info->server_address);	/*32 bit Internet address network byte ordered*/
 	server_addr.sin_port = htons(SERVER_PORT);		/*server TCP port must be network byte ordered */
 
 	/*open an TCP socket*/
@@ -54,6 +45,8 @@ int main(int argc, char** argv) {
     		perror("socket()");
         	exit(0);
     	}
+
+	printf("Socket connected port:%d ip:%s\n", info->sockfd, info->server_address);
 	/*connect to the server*/
     	if(connect(info->sockfd,
 	           (struct sockaddr *)&server_addr,
@@ -93,4 +86,6 @@ int main(int argc, char** argv) {
 	//printf("Bytes escritos %d\n", bytes);
 
 	close(info->sockfd);
+
+	return 0;
 }

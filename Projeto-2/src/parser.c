@@ -21,9 +21,9 @@ int check_regex(char* url) {
 			<user> -> [[A-Za-z0-9_-]+
 			<password> -> [A-Za-z0-9]+ //TODO: regex apenas aceita passwords com letras numeros _ e -
 			<host> -> [A-Za-z0-9\\.]+
-			<url-path> -> ([A-Za-z0-9_-]+\\/)+
+			<url-path> -> ([A-Za-z0-9_-\\.]+\\/)+
 	*/
-	reti = regcomp(&regex, "ftp://\\[[A-Za-z0-9_-]+:[A-Za-z0-9]+@\\][A-Za-z0-9\\.]+\\/([A-Za-z0-9_-]+\\/)+", REG_EXTENDED);
+	reti = regcomp(&regex, "ftp://\\[[A-Za-z0-9_-]+:[A-Za-z0-9]+@\\][A-Za-z0-9\\.]+\\/([A-Za-z0-9_-]+\\/)+([A-Za-z0-9_-]+\\.)", REG_EXTENDED);
 	if (reti)
 	    return REG_ERROR;
 
