@@ -1,25 +1,26 @@
 #include "parser.h"
 
-int parser(char* url, ftp_info * info) {
+
+int parser(char *url, ftp_info *info) {
 	int check_return;
 
 	check_return = check_regex(url);
 
-	if(check_return == URL_VALID)
+	if (check_return == URL_VALID)
 		 return url_parser(url, info);
 
 	else
 		return check_return;
 }
 
-int check_regex(char* url) {
+int check_regex(char *url) {
 	regex_t regex;
 	int reti;
 
 	/* Compila a expressao regular */
 	/* ftp://[<user>:<password>@]<host>/<url-path>
 			<user> -> [[A-Za-z0-9_-]+
-			<password> -> [A-Za-z0-9]+ //TODO: regex apenas aceita passwords com letras numeros _ e -
+			<password> -> [A-Za-z0-9]+
 			<host> -> [A-Za-z0-9\\.]+
 			<url-path> -> ([A-Za-z0-9_-\\.]+\\/)+
 	*/
@@ -51,11 +52,11 @@ int url_parser(char* url, ftp_info * info) {
 	const char d2[2] = ":";
 	const char d3[2] = "@]";
 	const char d4[2] = "/";
-	char *token 	 = (char*)malloc(MAX_SIZE);
-	char *user 	 = (char*)malloc(MAX_SIZE);
+	char *token 		 = (char*)malloc(MAX_SIZE);
+	char *user 	 		 = (char*)malloc(MAX_SIZE);
 	char *password 	 = (char*)malloc(MAX_SIZE);
-	char *host 	 = (char*)malloc(MAX_SIZE);
-	char *path 	 = (char*)malloc(MAX_SIZE);
+	char *host 	 		 = (char*)malloc(MAX_SIZE);
+	char *path 			 = (char*)malloc(MAX_SIZE);
 
 	//ftp://[<user>:<password>@]<host>/<url-path>
 
