@@ -3,11 +3,6 @@
 en
 password: 8nortel
 
-// Delete all configurations on switch
-erase startup-config
-delete vlan.dat
-reload
-
 // Create 2 vlans (ids = 30, 31)
 configure terminal
 vlan 30
@@ -55,13 +50,13 @@ password: 8nortel
 
 configure terminal
 interface gigabitethernet 0/0
-ip address 172.16.11.254 255.255.255.0
+ip address 172.16.31.254 255.255.255.0
 no shutdown
 ip nat inside
 exit
 
 interface gigabitethernet 0/1
-ip address 172.16.1.19 255.255.255.0
+ip address 172.16.1.39 255.255.255.0
 no shutdown
 ip nat outside
 exit
@@ -73,11 +68,6 @@ no shutdown
 ip nat inside source list 1 pool ovrld overload
 exit
 
-interface gigabitethernet 0/1
-ip address 172.16.1.19 255.255.255.0
-no shutdown
-ip nat outside
-exit
 
 configure terminal
 access-list 1 permit 172.16.30.0 0.0.0.255
